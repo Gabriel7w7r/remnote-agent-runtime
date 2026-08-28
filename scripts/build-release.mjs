@@ -1,7 +1,7 @@
 import { Buffer } from "node:buffer";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { createWriteStream } from "node:fs";
+import { createWriteStream, existsSync } from "node:fs";
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -46,6 +46,7 @@ const deploy = spawnSync(
     "deploy",
     "--prod",
     "--config.inject-workspace-packages=true",
+    "--config.node-linker=hoisted",
     serverTarget,
   ],
   { cwd: root, stdio: "inherit" },
@@ -59,20 +60,7 @@ await Promise.all(
   ),
 );
 
-const serverSmokeTest = spawnSync(
-  process.execPath,
-  [join(serverTarget, "dist", "index.js"), "--version"],
-  {
-    cwd: serverTarget,
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  },
-);
-if (serverSmokeTest.status !== 0 || !serverSmokeTest.stdout.includes(version)) {
-  throw new Error(
-    `Release-stage server smoke test failed: ${serverSmokeTest.stderr || serverSmokeTest.stdout}`,
-  );
-}
+smokeTestRuntimeTree(serverTarget, "Release-stage");
 
 const bridgeRoot = join(root, "packages", "bridge");
 await mkdir(join(bridgeTarget, "scripts"), { recursive: true });
@@ -90,6 +78,7 @@ for (const path of [
 }
 
 await createZip(runtimeRoot, runtimeArchive);
+await smokeTestRuntimeArchive(runtimeArchive);
 await createZip(join(bridgeRoot, "dist"), bridgeArchive);
 
 const manifest = {
@@ -113,6 +102,60 @@ async function sha256(path) {
   return createHash("sha256")
     .update(await readFile(path))
     .digest("hex");
+}
+
+async function smokeTestRuntimeArchive(archivePath) {
+  const smokeRoot = join(releaseRoot, "smoke-extract");
+  await rm(smokeRoot, { recursive: true, force: true });
+  await mkdir(smokeRoot, { recursive: true });
+  try {
+    const systemTar = join(
+      process.env.SystemRoot || "C:\\Windows",
+      "System32",
+      "tar.exe",
+    );
+    const useSystemTar = process.platform === "win32" && existsSync(systemTar);
+    const extractor = useSystemTar ? systemTar : "unzip";
+    const extractArgs = useSystemTar
+      ? ["-xf", archivePath, "-C", smokeRoot]
+      : ["-q", archivePath, "-d", smokeRoot];
+    const extraction = spawnSync(extractor, extractArgs, {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    if (extraction.status !== 0) {
+      throw new Error(
+        `Release archive extraction failed: ${extraction.stderr || extraction.stdout}`,
+      );
+    }
+
+    smokeTestRuntimeTree(join(smokeRoot, "server"), "Extracted release");
+  } finally {
+    await rm(smokeRoot, { recursive: true, force: true });
+  }
+}
+
+function smokeTestRuntimeTree(serverRoot, label) {
+  const smokeTest = spawnSync(
+    process.execPath,
+    [
+      "--input-type=module",
+      "--eval",
+      "await import('./dist/websocket-server.js'); process.stdout.write('ok')",
+    ],
+    {
+      cwd: serverRoot,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+      timeout: 10_000,
+    },
+  );
+  if (smokeTest.status !== 0 || smokeTest.stdout !== "ok") {
+    const detail =
+      smokeTest.error?.message || smokeTest.stderr || smokeTest.stdout;
+    throw new Error(`${label} server smoke test failed: ${detail}`);
+  }
 }
 
 async function createZip(sourceDir, destinationPath) {
