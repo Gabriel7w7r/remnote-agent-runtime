@@ -1,0 +1,157 @@
+{
+  "manifest_version": "0.3",
+  "name": "remnote-local",
+  "display_name": "RemNote Local",
+  "version": "0.18.0",
+  "description": "Use a locally running RemNote MCP Server from Claude Desktop or Cowork without a public HTTPS tunnel.",
+  "long_description": "RemNote Local is a Claude Desktop extension that exposes RemNote MCP tools over stdio and forwards calls to a local remnote-mcp-server Streamable HTTP endpoint. It can also be used by Claude Cowork in Claude Desktop when desktop extensions are enabled. Start remnote-mcp-server and keep the RemNote Automation Bridge plugin connected before using the tools.",
+  "author": { "name": "Robert Spiegel", "email": "nightingale7@gmail.com" },
+  "repository": { "type": "git", "url": "https://github.com/robert7/remnote-mcp-server.git" },
+  "homepage": "https://github.com/robert7/remnote-mcp-server",
+  "documentation": "https://github.com/robert7/remnote-mcp-server/tree/main/docs/guides",
+  "support": "https://github.com/robert7/remnote-mcp-server/issues",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"],
+      "env": { "REMNOTE_MCP_URL": "${user_config.mcp_url}" }
+    }
+  },
+  "tools": [
+    {
+      "name": "remnote_create_note",
+      "description": "Create a new note in RemNote with optional content, parent, exact tag Rem IDs, and real aliases on an explicit title/root Rem. Supports hierarchical markdown, flashcard syntax (e.g. \"- Term :: Definition\"), and exact inline Rem references as [[id:<remId>]]. At least one of title or content must be provided. Recommended preflight once per session: remnote_status."
+    },
+    {
+      "name": "remnote_search",
+      "description": "Search the RemNote knowledge base. Supports cursor paging through hasMore/nextCursor. For whole-KB orientation, prefer contentMode=\"structured\" with view=\"compact\", depth=1, and childLimit=500. Request ancestorDepth when hierarchy context matters."
+    },
+    {
+      "name": "remnote_search_by_tag",
+      "description": "Find notes by exact tag Rem ID. Supports cursor paging through hasMore/nextCursor. Default resultMode=\"context\" returns resolved ancestor context targets with matchedRems; resultMode=\"tagged\" returns directly tagged Rems with context metadata. Request ancestorDepth to include parent-first ancestors on both context results and matchedRems."
+    },
+    {
+      "name": "remnote_read_note",
+      "description": "Read a specific note from RemNote by its Rem ID. For hierarchy traversal, prefer contentMode=\"structured\" and start shallow (depth=1, childLimit=500), then deepen only selected branches. Request ancestorDepth when placement context matters."
+    },
+    {
+      "name": "remnote_get_media",
+      "description": "Retrieve a RemNote-managed local image as MCP-native image content. First call remnote_read_note with includeMediaMetadata=true, then pass the returned remId, field, and mediaId. External URL retrieval is not supported."
+    },
+    {
+      "name": "remnote_list_children",
+      "description": "List direct child Rems under a parent without rendering a subtree. Use for cheap hierarchy traversal; page with nextCursor when hasMore is true."
+    },
+    {
+      "name": "remnote_update_note",
+      "description": "Update note metadata in RemNote with an optional title change and exact additive/removal alias operations. The title supports exact Rem references as [[id:<remId>]]."
+    },
+    {
+      "name": "remnote_set_document_status",
+      "description": "Preview or set whether an existing Rem is marked as a document. Uses dryRun=true by default, preserves Rem ID, children, parent, tags, and concept/card status, and requires write operations to be enabled."
+    },
+    {
+      "name": "remnote_move_note",
+      "description": "Safely move an existing Rem and its subtree under a new parent. Defaults to dryRun=true; pass dryRun=false only after user approval. expectedOldParentRemId rejects stale move proposals."
+    },
+    {
+      "name": "remnote_insert_children",
+      "description": "Insert new child Rems under a parent at a deterministic position without replacing existing children. Use this for tag description nodes and hierarchy maintenance."
+    },
+    {
+      "name": "remnote_replace_children",
+      "description": "Replace all direct content children under a parent Rem while preserving parent metadata. This is destructive because existing content-child Rem IDs are removed and may be blocked by bridge policy."
+    },
+    {
+      "name": "remnote_update_tags",
+      "description": "Add or remove tags from a note by exact tag Rem IDs. Use this for production tagging workflows to avoid ambiguous name lookup."
+    },
+    {
+      "name": "remnote_set_property",
+      "description": "Set or clear a tag/table property value on a Rem by exact IDs. The bridge verifies the property belongs to the supplied tag/table Rem, adds the tag idempotently, then writes the property value. For select properties, pass the option Rem ID as value.kind=\"rem_reference\"."
+    },
+    {
+      "name": "remnote_append_journal",
+      "description": "Append content to today's daily document in RemNote with optional exact tag Rem IDs. Recommended preflight once per session: remnote_status."
+    },
+    {
+      "name": "remnote_get_playbook",
+      "description": "Get an operations playbook for MCP agents: status-first recommendation, navigation presets, content-mode guidance, and write-safety decision tree."
+    },
+    {
+      "name": "remnote_status",
+      "description": "Check bridge connection health, compatibility warnings, and write-policy settings. Recommended once per session before write operations."
+    },
+    {
+      "name": "remnote_pairing_status",
+      "description": "Inspect secure RemNote Agent pairing. When pairing is pending, returns the one-time code to enter in the RemNote Agent Bridge sidebar."
+    },
+    {
+      "name": "remnote_reset_pairing",
+      "description": "Forget the currently paired RemNote bridge and disconnect it. Use only when intentionally pairing a different RemNote installation or recovering from a lost bridge secret."
+    },
+    {
+      "name": "remnote_capabilities",
+      "description": "List every action advertised by the connected RemNote Agent Bridge, including scope, risk, availability, and any SDK limitation."
+    },
+    {
+      "name": "remnote_editor",
+      "description": "Inspect and control the active RemNote editor: selections, caret, insertion, markdown, rich text, undo/redo, copy/cut, and deletion. Operations are individually risk-scoped."
+    },
+    {
+      "name": "remnote_window",
+      "description": "Inspect and control RemNote panes, focused pane, address URL, open Rems, and complete pane trees."
+    },
+    {
+      "name": "remnote_queue",
+      "description": "Inspect and operate the live RemNote review queue, including reveal, rating, back navigation, and queue removal."
+    },
+    {
+      "name": "remnote_card",
+      "description": "Read card scheduling metadata, append a repetition score, or permanently remove a card."
+    },
+    {
+      "name": "remnote_rem",
+      "description": "Low-level stable-ID Rem control: relations, formatting, types, flashcard settings, portals, sources, aliases, hierarchy, tables, links, merge, and deletion."
+    },
+    {
+      "name": "remnote_knowledge_base",
+      "description": "Read the current RemNote knowledge-base identity and whether it is the primary knowledge base."
+    },
+    {
+      "name": "remnote_daily_document",
+      "description": "Resolve or create today's Daily Document or the Daily Document for an ISO date."
+    },
+    {
+      "name": "remnote_reader",
+      "description": "Create a highlight from the current selection in the active RemNote reader."
+    },
+    {
+      "name": "remnote_audit_log",
+      "description": "Read recent local RemNote Agent operation audit entries. Entries include action, scope, risk, timing, outcome, and a payload hash, never note contents or authentication secrets."
+    },
+    {
+      "name": "remnote_read_table",
+      "description": "Read an Advanced Table from RemNote by exact title or Rem ID. Returns the table schema (columns with property types) and row data (cell values). Use this when you need structured tabular data. For simple tag-based queries without table structure, prefer remnote_search_by_tag."
+    }
+  ],
+  "tools_generated": true,
+  "keywords": ["remnote", "mcp", "notes", "knowledge-base", "local"],
+  "license": "MIT",
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": { "node": ">=20.0.0" }
+  },
+  "user_config": {
+    "mcp_url": {
+      "type": "string",
+      "title": "Local MCP URL",
+      "description": "Local remnote-mcp-server Streamable HTTP endpoint.",
+      "default": "http://127.0.0.1:3001/mcp",
+      "required": true
+    }
+  }
+}

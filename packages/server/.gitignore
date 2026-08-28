@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+*.log
+*.mcpb
+.DS_Store
+*.local.md
+.agents
+.clawpatch
+__pycache__/
+*.py[cod]

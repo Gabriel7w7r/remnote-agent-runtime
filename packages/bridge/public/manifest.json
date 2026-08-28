@@ -1,0 +1,21 @@
+{
+  "manifestVersion": 1,
+  "id": "remnote-agent-bridge-p",
+  "name": "RemNote Agent Bridge",
+  "author": "Gabriel7w7r",
+  "description": "Secure local automation bridge for RemNote Agent. Pair once, then use scoped agentic tools to create, read, edit, organize, review, and navigate your RemNote knowledge base.",
+  "version": {
+    "major": 0,
+    "minor": 19,
+    "patch": 0
+  },
+  "repoUrl": "https://github.com/Gabriel7w7r/remnote-agent-runtime",
+  "enableOnMobile": false,
+  "requestNative": false,
+  "requiredScopes": [
+    {
+      "type": "All",
+      "level": "ReadCreateModifyDelete"
+    }
+  ]
+}

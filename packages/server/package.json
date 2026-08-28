@@ -1,0 +1,93 @@
+{
+  "name": "@remnote-agent/server",
+  "version": "0.19.0",
+  "description": "Secure local runtime and MCP server for RemNote Agent",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "remnote-mcp-server": "dist/index.js",
+    "remnote-cli": "dist/remnote-cli/index.js",
+    "remnote-mcp-stdio": "mcpb/remnote-local/server/index.js"
+  },
+  "scripts": {
+    "build": "tsc && node scripts/chmod-bins.mjs && node scripts/generate-mcpb-tools.mjs && node scripts/build-mcpb.mjs",
+    "build:mcpb": "npm run generate:mcpb-tools && node scripts/build-mcpb.mjs",
+    "generate:mcpb-tools": "tsc && node scripts/generate-mcpb-tools.mjs",
+    "check:mcpb-tools": "tsc && node scripts/generate-mcpb-tools.mjs --check",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "./run-integration-test.sh",
+    "test:integration:mcp": "tsx test/integration/run-integration.ts",
+    "test:integration:mcpb": "tsx test/integration/run-integration.ts --transport mcpb",
+    "test:integration:cli": "tsx test/integration/cli/run-integration.ts",
+    "test:ui": "vitest --ui",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\" \"mcpb/**/*.js\" \"scripts/**/*.mjs\"",
+    "lint:fix": "eslint \"src/**/*.ts\" \"test/**/*.ts\" \"mcpb/**/*.js\" \"scripts/**/*.mjs\" --fix",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"mcpb/**/*.js\" \"mcpb/**/*.json\" \"mcpb/**/*.md\" \"scripts/**/*.mjs\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"mcpb/**/*.js\" \"mcpb/**/*.json\" \"mcpb/**/*.md\" \"scripts/**/*.mjs\"",
+    "quality": "./code-quality.sh",
+    "precommit": "./code-quality.sh"
+  },
+  "keywords": [
+    "mcp",
+    "remnote",
+    "model-context-protocol",
+    "knowledge-base",
+    "note-taking",
+    "ai",
+    "assistant",
+    "websocket",
+    "bridge"
+  ],
+  "author": "Robert Spiegel <nightingale7@gmail.com>",
+  "license": "MIT",
+  "files": [
+    "dist/",
+    "mcpb/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gabriel7w7r/remnote-agent-runtime.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Gabriel7w7r/remnote-agent-runtime/issues"
+  },
+  "homepage": "https://github.com/Gabriel7w7r/remnote-agent-runtime#readme",
+  "dependencies": {
+    "@remnote-agent/protocol": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "commander": "^15.0.0",
+    "express": "^5.2.0",
+    "pino": "^10.3.1",
+    "ws": "^8.20.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/express": "^5.0.0",
+    "@types/node": "^26.1.1",
+    "@types/ws": "^8.18.1",
+    "@typescript-eslint/eslint-plugin": "^8.58.1",
+    "@typescript-eslint/parser": "^8.58.1",
+    "@vitest/coverage-v8": "^4.1.3",
+    "@vitest/ui": "^4.1.3",
+    "eslint": "^10.2.0",
+    "eslint-config-prettier": "^10.1.8",
+    "pino-pretty": "^13.1.3",
+    "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.3"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}

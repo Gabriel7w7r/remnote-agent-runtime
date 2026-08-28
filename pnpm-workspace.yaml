@@ -1,0 +1,10 @@
+packages:
+  - packages/*
+
+allowBuilds:
+  core-js-pure: true
+  esbuild: true
+
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - "@remnote/plugin-sdk@0.0.46"

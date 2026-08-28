@@ -1,0 +1,240 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { getBundledMcpbPath, handleUtilityCommand, parseCliArgs } from '../../src/cli.js';
+
+describe('CLI Argument Parsing', () => {
+  const originalArgv = process.argv;
+  const originalExit = process.exit;
+
+  beforeEach(() => {
+    // Mock process.exit to prevent test termination
+    process.exit = vi.fn() as never;
+  });
+
+  afterEach(() => {
+    process.argv = originalArgv;
+    process.exit = originalExit;
+  });
+
+  describe('Default Values', () => {
+    it('should return empty options when no arguments provided', () => {
+      process.argv = ['node', 'remnote-mcp-server'];
+      const options = parseCliArgs();
+      expect(options).toEqual({});
+    });
+  });
+
+  describe('Utility Commands', () => {
+    it('prints the bundled MCPB path without starting the server', async () => {
+      const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      expect(await handleUtilityCommand(['node', 'remnote-mcp-server', 'mcpb-path'])).toBe(true);
+      expect(log).toHaveBeenCalledWith(getBundledMcpbPath());
+      expect(getBundledMcpbPath()).toMatch(/mcpb[/\\]remnote-local[/\\]remnote-local\.mcpb$/);
+    });
+
+    it('ignores normal server arguments', async () => {
+      expect(
+        await handleUtilityCommand(['node', 'remnote-mcp-server', '--http-port', '4001'])
+      ).toBe(false);
+    });
+  });
+
+  describe('Port Arguments', () => {
+    it('should parse WebSocket port', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--ws-port', '4002'];
+      const options = parseCliArgs();
+      expect(options.wsPort).toBe(4002);
+    });
+
+    it('should parse HTTP port', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--http-port', '4001'];
+      const options = parseCliArgs();
+      expect(options.httpPort).toBe(4001);
+    });
+
+    it('should reject invalid port numbers', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--ws-port', 'invalid'];
+      expect(() => parseCliArgs()).toThrow('Invalid port number');
+    });
+
+    it('should reject port numbers below 1', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--ws-port', '0'];
+      expect(() => parseCliArgs()).toThrow('Invalid port number');
+    });
+
+    it('should reject port numbers above 65535', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--ws-port', '65536'];
+      expect(() => parseCliArgs()).toThrow('Invalid port number');
+    });
+
+    it('should reject same port for WebSocket and HTTP', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--ws-port', '3000', '--http-port', '3000'];
+      parseCliArgs();
+      expect(process.exit).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('Log Level Arguments', () => {
+    it('should parse console log level', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--log-level', 'debug'];
+      const options = parseCliArgs();
+      expect(options.logLevel).toBe('debug');
+    });
+
+    it('should parse file log level', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--log-level-file', 'warn'];
+      const options = parseCliArgs();
+      expect(options.logLevelFile).toBe('warn');
+    });
+
+    it('should accept all valid log levels', () => {
+      const validLevels = ['debug', 'info', 'warn', 'error'];
+
+      for (const level of validLevels) {
+        process.argv = ['node', 'remnote-mcp-server', '--log-level', level];
+        const options = parseCliArgs();
+        expect(options.logLevel).toBe(level);
+      }
+    });
+
+    it('should reject invalid log levels', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--log-level', 'invalid'];
+      expect(() => parseCliArgs()).toThrow('Invalid log level');
+    });
+
+    it('should normalize log level to lowercase', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--log-level', 'DEBUG'];
+      const options = parseCliArgs();
+      expect(options.logLevel).toBe('debug');
+    });
+  });
+
+  describe('Verbose Flag', () => {
+    it('should set verbose flag', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--verbose'];
+      const options = parseCliArgs();
+      expect(options.verbose).toBe(true);
+    });
+
+    it('should work with other flags', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--verbose', '--ws-port', '4002'];
+      const options = parseCliArgs();
+      expect(options.verbose).toBe(true);
+      expect(options.wsPort).toBe(4002);
+    });
+  });
+
+  describe('Host Arguments', () => {
+    it('should parse HTTP host', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--http-host', '0.0.0.0'];
+      const options = parseCliArgs();
+      expect(options.httpHost).toBe('0.0.0.0');
+    });
+
+    it('should accept localhost', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--http-host', 'localhost'];
+      const options = parseCliArgs();
+      expect(options.httpHost).toBe('localhost');
+    });
+
+    it('should accept 127.0.0.1', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--http-host', '127.0.0.1'];
+      const options = parseCliArgs();
+      expect(options.httpHost).toBe('127.0.0.1');
+    });
+
+    it('should accept valid IPv4 addresses', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--http-host', '192.168.1.1'];
+      const options = parseCliArgs();
+      expect(options.httpHost).toBe('192.168.1.1');
+    });
+
+    it('should reject invalid host format', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--http-host', 'invalid-host'];
+      expect(() => parseCliArgs()).toThrow('Invalid host');
+    });
+
+    it('should reject IPv4 addresses with octets > 255', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--http-host', '192.168.256.1'];
+      expect(() => parseCliArgs()).toThrow('Invalid host');
+    });
+
+    it('should reject IPv4 addresses with octets < 0', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--http-host', '192.168.-1.1'];
+      expect(() => parseCliArgs()).toThrow('Invalid host');
+    });
+
+    it('should reject malformed IPv4 addresses', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--http-host', '192.168.1'];
+      expect(() => parseCliArgs()).toThrow('Invalid host');
+    });
+  });
+
+  describe('Config File Argument', () => {
+    it('should parse config file path', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--config', '/tmp/remnote-config.toml'];
+      const options = parseCliArgs();
+      expect(options.config).toBe('/tmp/remnote-config.toml');
+    });
+  });
+
+  describe('File Logging Arguments', () => {
+    it('should parse log file path', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--log-file', '/tmp/test.log'];
+      const options = parseCliArgs();
+      expect(options.logFile).toBe('/tmp/test.log');
+    });
+
+    it('should parse request log path', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--request-log', '/tmp/req.jsonl'];
+      const options = parseCliArgs();
+      expect(options.requestLog).toBe('/tmp/req.jsonl');
+    });
+
+    it('should parse response log path', () => {
+      process.argv = ['node', 'remnote-mcp-server', '--response-log', '/tmp/resp.jsonl'];
+      const options = parseCliArgs();
+      expect(options.responseLog).toBe('/tmp/resp.jsonl');
+    });
+  });
+
+  describe('Media Root Arguments', () => {
+    it('collects repeatable media roots under the public mediaRoots option', () => {
+      process.argv = [
+        'node',
+        'remnote-mcp-server',
+        '--media-root',
+        '/media/one',
+        '--media-root',
+        '/media/two',
+      ];
+
+      expect(parseCliArgs().mediaRoots).toEqual(['/media/one', '/media/two']);
+    });
+  });
+
+  describe('Combined Arguments', () => {
+    it('should parse multiple arguments together', () => {
+      process.argv = [
+        'node',
+        'remnote-mcp-server',
+        '--ws-port',
+        '4002',
+        '--http-port',
+        '4001',
+        '--log-level',
+        'debug',
+        '--log-file',
+        '/tmp/test.log',
+      ];
+      const options = parseCliArgs();
+
+      expect(options).toEqual({
+        wsPort: 4002,
+        httpPort: 4001,
+        logLevel: 'debug',
+        logFile: '/tmp/test.log',
+      });
+    });
+  });
+});

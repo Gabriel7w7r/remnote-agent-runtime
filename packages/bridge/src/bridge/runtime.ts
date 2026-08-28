@@ -1,0 +1,708 @@
+declare const __PLUGIN_VERSION__: string;
+
+import { FocusEvents, SidebarEvents, type ReactRNPlugin, WindowEvents } from '@remnote/plugin-sdk';
+import {
+  ACTION_POLICIES,
+  type BridgeCapability,
+  type CapabilityScope,
+} from '@remnote-agent/protocol';
+import { RemAdapter } from '../api/rem-adapter';
+import {
+  type BridgeRequest,
+  type AuthSnapshot,
+  type AuthStatus,
+  type CompanionInfo,
+  type ConnectionStatus,
+  type ReconnectMetadata,
+  type RetryPhase,
+  WebSocketClient,
+} from './websocket-client';
+import { type AutomationBridgeSettings, readAutomationBridgeSettings } from '../settings';
+import {
+  registerDevToolsBridgeExecutor,
+  type DevToolsExecutorConfig,
+} from '../widgets/devtools-bridge-executor';
+import { registerBridgeRuntimeUiBridge } from '../widgets/runtime-ui-bridge';
+import { withScopedLogPrefix } from '../logging';
+import { isSdkAgentAction, SdkAgent } from './sdk-agent';
+
+export interface LogEntry {
+  timestamp: Date;
+  message: string;
+  level: 'info' | 'error' | 'warn' | 'success';
+}
+
+export interface SessionStats {
+  created: number;
+  updated: number;
+  journal: number;
+  searches: number;
+}
+
+export interface HistoryEntry {
+  id: string;
+  timestamp: Date;
+  action: 'create' | 'update' | 'journal' | 'search' | 'read';
+  titles: string[];
+  remIds?: string[];
+}
+
+export type BridgeInstallMode = 'development' | 'marketplace';
+
+export interface BridgeRuntimeSnapshot {
+  status: ConnectionStatus;
+  retryPhase: RetryPhase;
+  bridgeVersion: string;
+  installMode: BridgeInstallMode;
+  companion?: CompanionInfo;
+  wsUrl: string;
+  logs: LogEntry[];
+  stats: SessionStats;
+  history: HistoryEntry[];
+  lastConnectedAt?: number;
+  reconnectAttempts: number;
+  maxReconnectAttempts: number;
+  nextRetryAt?: number;
+  lastRetryDelayMs?: number;
+  lastDisconnectReason?: string;
+  authStatus: AuthStatus;
+  authenticated: boolean;
+  pairingRequired: boolean;
+  grantedScopes: CapabilityScope[];
+  capabilities: BridgeCapability[];
+  installationId: string;
+  authRejectionReason?: string;
+}
+
+export interface BridgeRuntime {
+  getSnapshot(): BridgeRuntimeSnapshot;
+  subscribe(listener: (snapshot: BridgeRuntimeSnapshot) => void): () => void;
+  reconnect(reason?: string): void;
+  nudgeReconnect(reason?: string): void;
+  updateSettings(settings: Partial<AutomationBridgeSettings>): void;
+  pair(code: string): Promise<void>;
+  shutdown(): void;
+}
+
+export const MAX_LOGS = 50;
+export const MAX_HISTORY = 10;
+export const AUTO_NUDGE_COOLDOWN_MS = 15_000;
+export const BRIDGE_INSTALLATION_ID_STORAGE_KEY = 'remnote-agent-installation-id-v1';
+export const BRIDGE_PAIRING_SECRET_STORAGE_KEY = 'remnote-agent-pairing-secret-v1';
+export const BRIDGE_CAPABILITIES: BridgeCapability[] = Object.entries(ACTION_POLICIES).map(
+  ([id, policy]) => ({ id, scope: policy.scope, risk: policy.risk, available: true })
+);
+
+export function getBridgeInstallMode(rootUrl: string | undefined): BridgeInstallMode {
+  return rootUrl?.startsWith('http://localhost:8080/') ? 'development' : 'marketplace';
+}
+
+function formatCompanionKind(kind: CompanionInfo['kind']): string {
+  return kind === 'cli' ? 'CLI' : 'MCP server';
+}
+
+class BridgeRuntimeController implements BridgeRuntime {
+  private readonly adapter: RemAdapter;
+  private readonly sdkAgent: SdkAgent;
+  private readonly listeners = new Set<(snapshot: BridgeRuntimeSnapshot) => void>();
+  private wsClient: WebSocketClient;
+  private unregisterDevTools: (() => void) | null = null;
+  private unregisterUiBridge: (() => void) | null = null;
+  private windowListeners: Array<() => void> = [];
+  private settings: AutomationBridgeSettings;
+  private status: ConnectionStatus = 'disconnected';
+  private retryPhase: RetryPhase = 'idle';
+  private logs: LogEntry[] = [];
+  private stats: SessionStats = {
+    created: 0,
+    updated: 0,
+    journal: 0,
+    searches: 0,
+  };
+  private history: HistoryEntry[] = [];
+  private historyIdCounter = 0;
+  private lastConnectedAt?: number;
+  private lastAutoNudgeAt?: number;
+  private lastSuppressedAutoNudgeAt?: number;
+  private readonly bridgeVersion = __PLUGIN_VERSION__;
+  private readonly installMode: BridgeInstallMode;
+  private companionInfo?: CompanionInfo;
+  private authSnapshot: AuthSnapshot = {
+    status: 'disconnected',
+    authenticated: false,
+    pairingRequired: false,
+    grantedScopes: [],
+  };
+
+  constructor(
+    private readonly plugin: ReactRNPlugin,
+    settings: AutomationBridgeSettings,
+    private readonly installationId: string,
+    private pairingSecret?: string
+  ) {
+    this.settings = settings;
+    this.installMode = getBridgeInstallMode(plugin.rootURL);
+    this.adapter = new RemAdapter(plugin, settings);
+    this.sdkAgent = new SdkAgent(plugin);
+    this.wsClient = this.createWebSocketClient(settings.wsUrl);
+    this.wsClient.setMessageHandler(this.handleRequest);
+    this.adapter.updateSettings(settings);
+  }
+
+  start(): void {
+    console.log(withScopedLogPrefix('runtime', 'Runtime start'));
+    this.addLog('RemAdapter initialized', 'success');
+    if (this.installMode === 'development') {
+      this.registerDevToolsExecutor();
+    }
+    this.registerUiBridge();
+    this.registerLifecycleNudges();
+    this.wsClient.connect();
+    this.addLog(`Connecting to automation bridge server at ${this.settings.wsUrl}...`, 'info');
+  }
+
+  getSnapshot(): BridgeRuntimeSnapshot {
+    const reconnectMetadata: ReconnectMetadata = this.wsClient.getReconnectMetadata();
+
+    return {
+      status: this.status,
+      retryPhase: this.retryPhase,
+      bridgeVersion: this.bridgeVersion,
+      installMode: this.installMode,
+      companion: this.companionInfo,
+      wsUrl: this.settings.wsUrl,
+      logs: [...this.logs],
+      stats: { ...this.stats },
+      history: [...this.history],
+      lastConnectedAt: this.lastConnectedAt,
+      reconnectAttempts: reconnectMetadata.reconnectAttempts,
+      maxReconnectAttempts: reconnectMetadata.maxReconnectAttempts,
+      nextRetryAt: reconnectMetadata.nextRetryAt,
+      lastRetryDelayMs: reconnectMetadata.lastRetryDelayMs,
+      lastDisconnectReason: reconnectMetadata.lastDisconnectReason,
+      authStatus: this.authSnapshot.status,
+      authenticated: this.authSnapshot.authenticated,
+      pairingRequired: this.authSnapshot.pairingRequired,
+      grantedScopes: [...this.authSnapshot.grantedScopes],
+      capabilities: BRIDGE_CAPABILITIES.map((capability) => ({ ...capability })),
+      installationId: this.installationId,
+      authRejectionReason: this.authSnapshot.rejectionReason,
+    };
+  }
+
+  subscribe(listener: (snapshot: BridgeRuntimeSnapshot) => void): () => void {
+    this.listeners.add(listener);
+    listener(this.getSnapshot());
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  reconnect(reason = 'manual request'): void {
+    console.log(withScopedLogPrefix('runtime', `Reconnect requested: ${reason}`));
+    this.addLog(`Manual reconnection requested (${reason})`, 'info');
+    this.wsClient.reconnect();
+  }
+
+  nudgeReconnect(reason = 'activity'): void {
+    if (this.status === 'connected' || this.status === 'connecting') {
+      return;
+    }
+
+    const now = Date.now();
+    if (this.lastAutoNudgeAt !== undefined && now - this.lastAutoNudgeAt < AUTO_NUDGE_COOLDOWN_MS) {
+      if (
+        this.lastSuppressedAutoNudgeAt === undefined ||
+        now - this.lastSuppressedAutoNudgeAt >= AUTO_NUDGE_COOLDOWN_MS
+      ) {
+        console.log(
+          withScopedLogPrefix(
+            'runtime',
+            `Auto reconnect nudge suppressed during cooldown: ${reason}`
+          )
+        );
+        this.addLog(`Auto reconnect nudge suppressed during cooldown (${reason})`, 'info');
+        this.lastSuppressedAutoNudgeAt = now;
+      }
+      return;
+    }
+
+    this.lastAutoNudgeAt = now;
+    this.lastSuppressedAutoNudgeAt = undefined;
+    console.log(withScopedLogPrefix('runtime', `Auto reconnect nudged: ${reason}`));
+    this.addLog(`Auto reconnect nudged (${reason})`, 'info');
+
+    if (this.retryPhase === 'standby') {
+      this.addLog(`Resuming faster retries from standby (${reason})`, 'info');
+      this.wsClient.wakeReconnect(reason);
+      return;
+    }
+
+    this.wsClient.nudgeReconnect(reason);
+  }
+
+  updateSettings(nextSettings: Partial<AutomationBridgeSettings>): void {
+    const settingKeys = Object.keys(nextSettings);
+    if (settingKeys.length > 0) {
+      console.log(
+        withScopedLogPrefix('runtime', `Settings update received: ${settingKeys.join(', ')}`)
+      );
+    }
+
+    const previousWsUrl = this.settings.wsUrl;
+    this.settings = { ...this.settings, ...nextSettings };
+    this.adapter.updateSettings(this.settings);
+
+    if (this.settings.wsUrl !== previousWsUrl) {
+      this.addLog(`WebSocket URL updated to ${this.settings.wsUrl}`, 'info');
+      this.wsClient.disconnect();
+      this.wsClient = this.createWebSocketClient(this.settings.wsUrl);
+      this.wsClient.setMessageHandler(this.handleRequest);
+      this.wsClient.connect();
+      this.addLog(`Connecting to automation bridge server at ${this.settings.wsUrl}...`, 'info');
+    }
+
+    this.emit();
+  }
+
+  async pair(code: string): Promise<void> {
+    try {
+      await this.wsClient.confirmPairing(code);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.addLog(`Pairing failed: ${message}`, 'error');
+      throw error;
+    }
+  }
+
+  shutdown(): void {
+    console.log(withScopedLogPrefix('runtime', 'Runtime shutdown'));
+    this.unregisterDevTools?.();
+    this.unregisterDevTools = null;
+    this.unregisterUiBridge?.();
+    this.unregisterUiBridge = null;
+    this.windowListeners.forEach((cleanup) => cleanup());
+    this.windowListeners = [];
+    this.wsClient.disconnect();
+    this.listeners.clear();
+  }
+
+  private createWebSocketClient(url: string): WebSocketClient {
+    return new WebSocketClient({
+      url,
+      pluginVersion: __PLUGIN_VERSION__,
+      sdkVersion: '0.0.46',
+      installationId: this.installationId,
+      pairingSecret: this.pairingSecret,
+      capabilities: BRIDGE_CAPABILITIES,
+      maxReconnectAttempts: 10,
+      initialReconnectDelay: 1000,
+      maxReconnectDelay: 30000,
+      standbyReconnectDelay: 10 * 60 * 1000,
+      onStatusChange: (status) => {
+        console.log(withScopedLogPrefix('runtime', `WebSocket status -> ${status}`));
+        this.status = status;
+        if (status === 'connected') {
+          this.lastConnectedAt = Date.now();
+        }
+        this.emit();
+      },
+      onRetryPhaseChange: (phase) => {
+        console.log(withScopedLogPrefix('runtime', `Retry phase -> ${phase}`));
+        this.retryPhase = phase;
+        this.emit();
+      },
+      onCompanionInfoChange: (info) => {
+        this.companionInfo = info;
+        if (info) {
+          this.addLog(
+            `Companion ready: ${formatCompanionKind(info.kind)} v${info.version}`,
+            'success'
+          );
+          return;
+        }
+        this.emit();
+      },
+      onAuthChange: (snapshot) => {
+        this.authSnapshot = snapshot;
+        if (snapshot.authenticated) {
+          this.addLog('Secure pairing authenticated', 'success');
+        } else {
+          this.emit();
+        }
+      },
+      onPairingSecretChange: async (secret) => {
+        this.pairingSecret = secret;
+        await this.plugin.storage.setLocal(BRIDGE_PAIRING_SECRET_STORAGE_KEY, secret ?? null);
+      },
+      onLog: (message, level) => {
+        this.addLog(message, level);
+      },
+    });
+  }
+
+  private addLog(message: string, level: LogEntry['level'] = 'info'): void {
+    this.logs = [...this.logs, { timestamp: new Date(), message, level }].slice(-MAX_LOGS);
+    this.emit();
+  }
+
+  private addHistoryEntry(
+    action: HistoryEntry['action'],
+    titles: string[],
+    remIds?: string[]
+  ): void {
+    this.history = [
+      { id: `h-${++this.historyIdCounter}`, timestamp: new Date(), action, titles, remIds },
+      ...this.history,
+    ].slice(0, MAX_HISTORY);
+    this.emit();
+  }
+
+  private emit(): void {
+    const snapshot = this.getSnapshot();
+    this.listeners.forEach((listener) => listener(snapshot));
+  }
+
+  private readonly handleRequest = async (request: BridgeRequest): Promise<unknown> => {
+    const payload = request.payload;
+    this.addLog(`Received action: ${request.action}`, 'info');
+
+    if (isSdkAgentAction(request.action)) {
+      const result = await this.sdkAgent.execute(request.action, payload);
+      if (!request.action.endsWith('_read')) {
+        this.stats = { ...this.stats, updated: this.stats.updated + 1 };
+        this.addHistoryEntry('update', [`SDK action: ${request.action}`]);
+        this.emit();
+      }
+      return result;
+    }
+
+    switch (request.action) {
+      case 'create_note': {
+        const result = await this.adapter.createNote({
+          title: payload.title as string | undefined,
+          content: payload.content as string | undefined,
+          parentId: payload.parentId as string | undefined,
+          tagRemIds: payload.tagRemIds as string[] | undefined,
+          asDocument: payload.asDocument as boolean | undefined,
+          aliases: payload.aliases as string[] | undefined,
+        });
+        this.stats = { ...this.stats, created: this.stats.created + 1 };
+        this.addHistoryEntry('create', result.titles || ['Note'], result.remIds);
+        this.emit();
+        return result;
+      }
+
+      case 'append_journal': {
+        const result = await this.adapter.appendJournal({
+          content: payload.content as string,
+          timestamp: payload.timestamp as boolean | undefined,
+          tagRemIds: payload.tagRemIds as string[] | undefined,
+        });
+        this.stats = { ...this.stats, journal: this.stats.journal + 1 };
+        this.addHistoryEntry('journal', result.titles, result.remIds);
+        this.emit();
+        return result;
+      }
+
+      case 'search': {
+        const result = await this.adapter.search({
+          query: payload.query as string,
+          parentRemId: typeof payload.parentRemId === 'string' ? payload.parentRemId : undefined,
+          limit: payload.limit as number | undefined,
+          cursor: typeof payload.cursor === 'string' ? payload.cursor : undefined,
+          contentMode: payload.contentMode as 'none' | 'markdown' | 'structured' | undefined,
+          depth: payload.depth as number | undefined,
+          childLimit: payload.childLimit as number | undefined,
+          maxContentLength: payload.maxContentLength as number | undefined,
+          ancestorDepth: payload.ancestorDepth as number | undefined,
+          view: payload.view as 'compact' | 'standard' | 'full' | undefined,
+        });
+        this.stats = { ...this.stats, searches: this.stats.searches + 1 };
+        this.addHistoryEntry('search', [`Search: "${payload.query}"`]);
+        this.emit();
+        return result;
+      }
+
+      case 'get_media_locator': {
+        return await this.adapter.getMediaLocator({
+          remId: payload.remId as string,
+          field: payload.field as 'text' | 'backText',
+          mediaId: payload.mediaId as string,
+        });
+      }
+
+      case 'search_by_tag': {
+        const result = await this.adapter.searchByTag({
+          tagRemId: payload.tagRemId as string,
+          resultMode: payload.resultMode as 'context' | 'tagged' | undefined,
+          limit: payload.limit as number | undefined,
+          cursor: typeof payload.cursor === 'string' ? payload.cursor : undefined,
+          contentMode: payload.contentMode as 'none' | 'markdown' | 'structured' | undefined,
+          depth: payload.depth as number | undefined,
+          childLimit: payload.childLimit as number | undefined,
+          maxContentLength: payload.maxContentLength as number | undefined,
+          ancestorDepth: payload.ancestorDepth as number | undefined,
+          view: payload.view as 'compact' | 'standard' | 'full' | undefined,
+        });
+        this.stats = { ...this.stats, searches: this.stats.searches + 1 };
+        this.addHistoryEntry('search', [`Search by tag Rem ID: "${payload.tagRemId}"`]);
+        this.emit();
+        return result;
+      }
+
+      case 'read_note': {
+        const result = await this.adapter.readNote({
+          remId: payload.remId as string,
+          includeMediaMetadata: payload.includeMediaMetadata as boolean | undefined,
+          depth: payload.depth as number | undefined,
+          contentMode: payload.contentMode as 'none' | 'markdown' | 'structured' | undefined,
+          childLimit: payload.childLimit as number | undefined,
+          maxContentLength: payload.maxContentLength as number | undefined,
+          ancestorDepth: payload.ancestorDepth as number | undefined,
+          view: payload.view as 'compact' | 'standard' | 'full' | undefined,
+        });
+        this.addHistoryEntry('read', [result.title], [result.remId]);
+        return result;
+      }
+
+      case 'list_children': {
+        const result = await this.adapter.listChildren({
+          parentRemId: payload.parentRemId as string,
+          limit: payload.limit as number | undefined,
+          cursor: typeof payload.cursor === 'string' ? payload.cursor : undefined,
+          ancestorDepth: payload.ancestorDepth as number | undefined,
+          view: payload.view as 'compact' | 'standard' | 'full' | undefined,
+        });
+        this.addHistoryEntry('read', [`Children of ${payload.parentRemId}`]);
+        return result;
+      }
+
+      case 'read_table': {
+        const result = await this.adapter.readTable({
+          tableRemId: payload.tableRemId as string | undefined,
+          tableTitle: payload.tableTitle as string | undefined,
+          limit: payload.limit as number | undefined,
+          offset: payload.offset as number | undefined,
+          propertyFilter: payload.propertyFilter as string[] | undefined,
+        });
+        this.addHistoryEntry('read', [result.tableName], [result.tableId]);
+        return result;
+      }
+
+      case 'update_note': {
+        const result = await this.adapter.updateNote({
+          remId: payload.remId as string,
+          title: payload.title as string | undefined,
+          addAliases: payload.addAliases as string[] | undefined,
+          removeAliases: payload.removeAliases as string[] | undefined,
+        });
+        this.stats = { ...this.stats, updated: this.stats.updated + 1 };
+        this.addHistoryEntry('update', result.titles || ['Note updated'], result.remIds);
+        this.emit();
+        return result;
+      }
+
+      case 'set_document_status': {
+        const result = await this.adapter.setDocumentStatus({
+          remId: payload.remId as string,
+          isDocument: payload.isDocument as boolean,
+          dryRun: payload.dryRun as boolean | undefined,
+          expectedOldRemType: payload.expectedOldRemType as
+            'document' | 'dailyDocument' | 'concept' | 'descriptor' | 'portal' | 'text' | undefined,
+        });
+        if (result.changed) {
+          this.stats = { ...this.stats, updated: this.stats.updated + 1 };
+          this.addHistoryEntry(
+            'update',
+            [`Document status updated: ${result.title}`],
+            [result.remId]
+          );
+          this.emit();
+        }
+        return result;
+      }
+
+      case 'insert_children': {
+        const result = await this.adapter.insertChildren({
+          parentRemId: payload.parentRemId as string,
+          content: payload.content as string,
+          position: payload.position as 'first' | 'last' | 'before' | 'after',
+          siblingRemId: payload.siblingRemId as string | undefined,
+        });
+        this.stats = { ...this.stats, updated: this.stats.updated + 1 };
+        this.addHistoryEntry('create', result.titles || ['Children inserted'], result.remIds);
+        this.emit();
+        return result;
+      }
+
+      case 'move_note': {
+        const result = await this.adapter.moveNote({
+          remId: payload.remId as string,
+          newParentRemId: payload.newParentRemId as string,
+          position: payload.position as 'first' | 'last' | 'before' | 'after' | undefined,
+          siblingRemId: payload.siblingRemId as string | undefined,
+          dryRun: payload.dryRun as boolean | undefined,
+          expectedOldParentRemId: payload.expectedOldParentRemId as string | undefined,
+          ancestorDepth: payload.ancestorDepth as number | undefined,
+        });
+        if (!result.dryRun) {
+          this.stats = { ...this.stats, updated: this.stats.updated + 1 };
+          this.addHistoryEntry('update', [`Moved ${result.title}`], [result.remId]);
+          this.emit();
+        }
+        return result;
+      }
+
+      case 'replace_children': {
+        const result = await this.adapter.replaceChildren({
+          parentRemId: payload.parentRemId as string,
+          content: payload.content as string,
+        });
+        this.stats = { ...this.stats, updated: this.stats.updated + 1 };
+        this.addHistoryEntry('update', result.titles || ['Children replaced'], result.remIds);
+        this.emit();
+        return result;
+      }
+
+      case 'update_tags': {
+        const result = await this.adapter.updateTags({
+          remId: payload.remId as string,
+          addTagRemIds: payload.addTagRemIds as string[] | undefined,
+          removeTagRemIds: payload.removeTagRemIds as string[] | undefined,
+        });
+        this.stats = { ...this.stats, updated: this.stats.updated + 1 };
+        this.addHistoryEntry('update', ['Tags updated'], result.remIds);
+        this.emit();
+        return result;
+      }
+
+      case 'set_property': {
+        const result = await this.adapter.setProperty({
+          remId: payload.remId as string,
+          tagRemId: payload.tagRemId as string,
+          propertyRemId: payload.propertyRemId as string,
+          value: payload.value as
+            | { kind: 'text'; text: string }
+            | { kind: 'rem_reference'; remId: string }
+            | { kind: 'clear' },
+        });
+        this.stats = { ...this.stats, updated: this.stats.updated + 1 };
+        this.addHistoryEntry('update', ['Property updated'], [result.remId]);
+        this.emit();
+        return result;
+      }
+
+      case 'get_status':
+        return await this.adapter.getStatus();
+
+      default:
+        throw new Error(`Unknown action: ${request.action}`);
+    }
+  };
+
+  private registerDevToolsExecutor(): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const config: DevToolsExecutorConfig = {
+      target: window,
+      execute: this.handleRequest,
+      onLog: (message, level) => this.addLog(message, level ?? 'info'),
+    };
+
+    this.unregisterDevTools = registerDevToolsBridgeExecutor(config);
+
+    this.addLog('DevTools bridge executor ready (event-based)', 'info');
+  }
+
+  private registerLifecycleNudges(): void {
+    const addPluginListener = (eventId: string, reason: string, listenerKey?: string): void => {
+      const callback = () => {
+        this.nudgeReconnect(reason);
+      };
+      this.plugin.event.addListener(eventId, listenerKey, callback);
+      this.windowListeners.push(() =>
+        this.plugin.event.removeListener(eventId, listenerKey, callback)
+      );
+    };
+
+    addPluginListener(WindowEvents.FocusedPaneChange, 'focused pane changed');
+    addPluginListener(FocusEvents.FocusedRemChange, 'focused rem changed');
+    addPluginListener(FocusEvents.FocusedPortalChange, 'focused portal changed');
+    addPluginListener(SidebarEvents.ClickSidebarItem, 'sidebar item clicked');
+
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const focusListener = () => {
+      this.nudgeReconnect('window focus');
+    };
+    window.addEventListener('focus', focusListener);
+    this.windowListeners.push(() => window.removeEventListener('focus', focusListener));
+
+    const onlineListener = () => {
+      this.nudgeReconnect('browser online');
+    };
+    window.addEventListener('online', onlineListener);
+    this.windowListeners.push(() => window.removeEventListener('online', onlineListener));
+
+    if (typeof document !== 'undefined') {
+      const visibilityListener = () => {
+        if (!document.hidden) {
+          this.nudgeReconnect('tab visible');
+        }
+      };
+      document.addEventListener('visibilitychange', visibilityListener);
+      this.windowListeners.push(() =>
+        document.removeEventListener('visibilitychange', visibilityListener)
+      );
+    }
+  }
+
+  private registerUiBridge(): void {
+    this.unregisterUiBridge = registerBridgeRuntimeUiBridge({
+      plugin: this.plugin,
+      runtime: this,
+    });
+  }
+}
+
+let runtime: BridgeRuntimeController | null = null;
+
+export async function initializeBridgeRuntime(plugin: ReactRNPlugin): Promise<BridgeRuntime> {
+  if (runtime) {
+    return runtime;
+  }
+
+  const settings = await readAutomationBridgeSettings(plugin);
+  let installationId = await plugin.storage.getLocal<string>(BRIDGE_INSTALLATION_ID_STORAGE_KEY);
+  if (!installationId) {
+    installationId =
+      globalThis.crypto?.randomUUID?.() ??
+      `remnote-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    await plugin.storage.setLocal(BRIDGE_INSTALLATION_ID_STORAGE_KEY, installationId);
+  }
+  const storedSecret = await plugin.storage.getLocal<string | null>(
+    BRIDGE_PAIRING_SECRET_STORAGE_KEY
+  );
+  runtime = new BridgeRuntimeController(
+    plugin,
+    settings,
+    installationId,
+    storedSecret ?? undefined
+  );
+  runtime.start();
+  return runtime;
+}
+
+export function getBridgeRuntime(): BridgeRuntime | null {
+  return runtime;
+}
+
+export function shutdownBridgeRuntime(): void {
+  runtime?.shutdown();
+  runtime = null;
+}

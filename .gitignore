@@ -1,0 +1,14 @@
+node_modules/
+.release/
+artifacts/
+dist/
+coverage/
+*.log
+*.zip
+*.mcpb
+.DS_Store
+.env
+.env.*
+!.env.example
+packages/*/PluginZip.zip
+packages/*/.codex-test-results.json
