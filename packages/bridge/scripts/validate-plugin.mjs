@@ -31,5 +31,5 @@ if (!manifest.id || !manifest.name || !manifest.description || !manifest.author)
   throw new Error('Plugin manifest must define id, name, description, and author');
 }
 
-await Promise.all(['mcp-icon.svg'].map((asset) => access(join(root, 'public', asset))));
+await Promise.all(['remnote-agent-icon.png'].map((asset) => access(join(root, 'public', asset))));
 process.stdout.write(`Validated RemNote plugin ${manifest.name} ${manifestVersion}.\n`);

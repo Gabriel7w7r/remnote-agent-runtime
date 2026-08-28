@@ -102,7 +102,7 @@ export async function activateAutomationBridge(plugin: ReactRNPlugin) {
 
   // Register automation bridge widget in right sidebar
   await plugin.app.registerWidget('mcp_bridge', WidgetLocation.RightSidebar, {
-    widgetTabIcon: `${plugin.rootURL}mcp-icon.svg`,
+    widgetTabIcon: `${plugin.rootURL}remnote-agent-icon.png`,
   });
 
   // // Register command to open the widget as popup

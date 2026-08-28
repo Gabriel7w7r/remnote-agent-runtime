@@ -101,7 +101,7 @@ describe('Automation Bridge activation', () => {
 
     expect(runtimeMocks.initializeBridgeRuntime).toHaveBeenCalledWith(mockPlugin);
     expect(registerWidgetSpy).toHaveBeenCalledWith('mcp_bridge', 3, {
-      widgetTabIcon: 'https://example.test/plugin/mcp-icon.svg',
+      widgetTabIcon: 'https://example.test/plugin/remnote-agent-icon.png',
     });
   });
 
