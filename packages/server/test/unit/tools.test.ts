@@ -26,6 +26,10 @@ import {
   PLAYBOOK_TOOL,
   STATUS_TOOL,
   READ_TABLE_TOOL,
+  WINDOW_TOOL,
+  CARD_TOOL,
+  REM_TOOL,
+  RICH_TEXT_TOOL,
   ALL_TOOLS,
 } from '../../src/tools/index.js';
 import { WebSocketServer } from '../../src/websocket-server.js';
@@ -478,6 +482,60 @@ describe('Tool Definitions', () => {
     expect(properties.totalRows).toBeDefined();
     expect(properties.rowsReturned).toBeDefined();
   });
+
+  it('should advertise the expanded RemNote Agent SDK controls', () => {
+    const windowOperations = WINDOW_TOOL.inputSchema.properties.operation.enum;
+    const cardOperations = CARD_TOOL.inputSchema.properties.operation.enum;
+    const remOperations = REM_TOOL.inputSchema.properties.operation.enum;
+
+    expect(windowOperations).toContain('open_agent_sidebar');
+    expect(cardOperations).toEqual(expect.arrayContaining(['get_rem', 'get_type']));
+    expect(remOperations).toEqual(
+      expect.arrayContaining([
+        'find_by_name',
+        'create_tree_markdown',
+        'move_many',
+        'insert_html',
+        'set_powerup_property',
+        'set_tag_property_value',
+        'set_table_filter',
+        'metadata',
+      ])
+    );
+  });
+
+  it('should document advanced Rem operation inputs in its public schema', () => {
+    const properties = REM_TOOL.inputSchema.properties;
+
+    expect(properties.remIds).toMatchObject({ type: 'array', minItems: 1 });
+    expect(properties.parentRemId).toBeDefined();
+    expect(properties.html).toBeDefined();
+    expect(properties.portalId).toBeDefined();
+    expect(properties.position).toMatchObject({ type: 'integer', minimum: 0 });
+    expect(properties.powerupCode).toBeDefined();
+    expect(properties.powerupSlot).toBeDefined();
+    expect(properties.propertyId).toBeDefined();
+    expect(properties.filter).toMatchObject({ type: 'object', additionalProperties: true });
+  });
+
+  it('should expose pure rich-text transformations as a dedicated tool', () => {
+    const operations = RICH_TEXT_TOOL.inputSchema.properties.operation.enum;
+
+    expect(operations).toEqual(
+      expect.arrayContaining([
+        'text',
+        'image',
+        'latex',
+        'rem_reference',
+        'to_html',
+        'to_markdown',
+        'apply_format',
+        'replace_all',
+      ])
+    );
+    expect(RICH_TEXT_TOOL.inputSchema.properties.richText2).toBeDefined();
+    expect(RICH_TEXT_TOOL.inputSchema.properties.formats).toBeDefined();
+  });
 });
 
 describe('Tool Registration', () => {
@@ -532,6 +590,7 @@ describe('Tool Registration', () => {
     expect(names).toContain('remnote_get_playbook');
     expect(names).toContain('remnote_status');
     expect(names).toContain('remnote_read_table');
+    expect(names).toContain('remnote_rich_text');
   });
 });
 

@@ -67,7 +67,7 @@ function extractPublicMethods(sourceText) {
     const property = line.match(/^\s{4}([A-Za-z][A-Za-z0-9]*):\s*(?:<[^;]+>\s*)?\(/);
     const declaration = line.match(/^\s{4}([A-Za-z][A-Za-z0-9]*)\([^)]*\):\s*Promise</);
     const name = property?.[1] ?? declaration?.[1];
-    if (name !== 'constructor' && name !== 'call' && name !== '_call') methods.add(name);
+    if (name && name !== 'constructor' && name !== 'call' && name !== '_call') methods.add(name);
   }
   return [...methods].sort();
 }

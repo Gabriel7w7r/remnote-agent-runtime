@@ -1,5 +1,5 @@
 export const REMNOTE_AGENT_PROTOCOL_VERSION = 2 as const;
-export const REMNOTE_AGENT_RUNTIME_VERSION = "0.19.0";
+export const REMNOTE_AGENT_RUNTIME_VERSION = "0.20.0";
 
 export const CAPABILITY_SCOPES = [
   "read",
@@ -51,6 +51,7 @@ export const ACTION_POLICIES = {
   rem_read: { scope: "read", risk: "read" },
   rem_write: { scope: "write", risk: "write" },
   rem_delete: { scope: "destructive", risk: "destructive" },
+  rich_text_read: { scope: "read", risk: "read" },
   kb_read: { scope: "read", risk: "read" },
   daily_document_write: { scope: "write", risk: "write" },
   reader_write: { scope: "write", risk: "write" },

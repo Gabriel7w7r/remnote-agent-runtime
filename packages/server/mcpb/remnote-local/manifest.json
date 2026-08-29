@@ -102,7 +102,7 @@
     },
     {
       "name": "remnote_window",
-      "description": "Inspect and control RemNote panes, focused pane, address URL, open Rems, and complete pane trees."
+      "description": "Inspect and control RemNote panes, focused pane, address URL, open Rems, complete pane trees, and the RemNote Agent sidebar."
     },
     {
       "name": "remnote_queue",
@@ -114,7 +114,11 @@
     },
     {
       "name": "remnote_rem",
-      "description": "Low-level stable-ID Rem control: relations, formatting, types, flashcard settings, portals, sources, aliases, hierarchy, tables, links, merge, and deletion."
+      "description": "Low-level stable-ID Rem control: batch creation and movement, relations, metadata, formatting, HTML, powerups, properties, types, flashcard settings, portals, sources, aliases, hierarchy, Advanced Table filters, links, merge, and deletion."
+    },
+    {
+      "name": "remnote_rich_text",
+      "description": "Build, format, inspect, split, compare, and convert official RemNote rich text, including references, code, LaTeX, images, audio, and video. These are read-scoped pure transformations and do not modify the knowledge base."
     },
     {
       "name": "remnote_knowledge_base",

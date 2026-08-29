@@ -6,7 +6,7 @@
   "description": "Secure local automation bridge for RemNote Agent. Pair once, then use scoped agentic tools to create, read, edit, organize, review, and navigate your RemNote knowledge base.",
   "version": {
     "major": 0,
-    "minor": 19,
+    "minor": 20,
     "patch": 0
   },
   "repoUrl": "https://github.com/Gabriel7w7r/remnote-agent-runtime",

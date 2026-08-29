@@ -5,7 +5,10 @@ import {
   type Card,
   type PluginRem,
   type ReactRNPlugin,
+  type RemIdWindowTree,
+  type RichTextFormatName,
   type RichTextInterface,
+  type SearchPortalQuery,
 } from '@remnote/plugin-sdk';
 
 export const SDK_AGENT_ACTIONS = [
@@ -22,6 +25,7 @@ export const SDK_AGENT_ACTIONS = [
   'rem_read',
   'rem_write',
   'rem_delete',
+  'rich_text_read',
   'kb_read',
   'daily_document_write',
   'reader_write',
@@ -64,6 +68,8 @@ export class SdkAgent {
         return await this.remWrite(payload);
       case 'rem_delete':
         return await this.remDelete(payload);
+      case 'rich_text_read':
+        return await this.richTextRead(payload);
       case 'kb_read':
         return await this.kbRead(payload);
       case 'daily_document_write':
@@ -195,12 +201,16 @@ export class SdkAgent {
         return {
           remId: await this.plugin.window.getOpenPaneRemId(optionalString(payload, 'paneId')),
         };
+      case 'get_focused_rem':
+        return { rem: serializeRem(await this.plugin.focus.getFocusedRem()) };
+      case 'get_focused_portal':
+        return { rem: serializeRem(await this.plugin.focus.getFocusedPortal()) };
       default:
         throw new Error('Unsupported window read operation');
     }
   }
 
-  private async windowWrite(payload: Record<string, unknown>): Promise<{ applied: true }> {
+  private async windowWrite(payload: Record<string, unknown>): Promise<unknown> {
     const operation = requiredString(payload, 'operation');
     switch (operation) {
       case 'set_tree':
@@ -220,6 +230,11 @@ export class SdkAgent {
       case 'open_rem':
         await this.plugin.window.openRem(await this.requireRem(requiredString(payload, 'remId')));
         break;
+      case 'open_agent_sidebar':
+        return {
+          applied: true,
+          paneRemIds: await this.plugin.window.openWidgetInRightSidebar('mcp_bridge'),
+        };
       default:
         throw new Error(`Unsupported window write operation: ${operation}`);
     }
@@ -310,6 +325,14 @@ export class SdkAgent {
         truncated: cards.length > limit,
       };
     }
+    if (operation === 'get_rem') {
+      const card = await this.requireCard(requiredString(payload, 'cardId'));
+      return { rem: serializeRem(await card.getRem()) };
+    }
+    if (operation === 'get_type') {
+      const card = await this.requireCard(requiredString(payload, 'cardId'));
+      return { type: await card.getType() };
+    }
     throw new Error(`Unsupported card read operation: ${operation}`);
   }
 
@@ -328,9 +351,46 @@ export class SdkAgent {
   }
 
   private async remRead(payload: Record<string, unknown>): Promise<unknown> {
-    const rem = await this.requireRem(requiredString(payload, 'remId'));
     const operation = requiredString(payload, 'operation');
     const limit = optionalLimit(payload, 100, 1000);
+    if (operation === 'find_by_name') {
+      return {
+        rem: serializeRem(
+          await this.plugin.rem.findByName(
+            requiredRichText(payload, 'richText'),
+            requiredNullableString(payload, 'parentRemId')
+          )
+        ),
+      };
+    }
+    if (operation === 'find_many') {
+      return serializeRemList(
+        (await this.plugin.rem.findMany(requiredStringArray(payload, 'remIds'))) ?? [],
+        limit
+      );
+    }
+    if (operation === 'get_all') {
+      return serializeRemList(await this.plugin.rem.getAll(), limit);
+    }
+    if (operation === 'get_powerup') {
+      return {
+        rem: serializeRem(
+          await this.plugin.powerup.getPowerupByCode(requiredString(payload, 'powerupCode'))
+        ),
+      };
+    }
+    if (operation === 'get_powerup_slot') {
+      return {
+        rem: serializeRem(
+          await this.plugin.powerup.getPowerupSlotByCode(
+            requiredString(payload, 'powerupCode'),
+            requiredString(payload, 'powerupSlot')
+          )
+        ),
+      };
+    }
+
+    const rem = await this.requireRem(requiredString(payload, 'remId'));
     switch (operation) {
       case 'get':
         return { rem: serializeRem(rem) };
@@ -348,10 +408,118 @@ export class SdkAgent {
         return serializeRemList(await rem.remsReferencingThis(), limit);
       case 'referenced':
         return serializeRemList(await rem.remsBeingReferenced(), limit);
+      case 'deep_referenced':
+        return serializeRemList(await rem.deepRemsBeingReferenced(), limit);
       case 'sources':
         return serializeRemList(await rem.getSources(), limit);
+      case 'siblings':
+        return serializeRemList(await rem.siblingRem(), limit);
+      case 'visible_siblings':
+        return serializeRemList(
+          await rem.visibleSiblingRem(optionalString(payload, 'portalId')),
+          limit
+        );
+      case 'ancestor_tags':
+        return serializeRemList(await rem.ancestorTagRem(), limit);
+      case 'descendant_tags':
+        return serializeRemList(await rem.descendantTagRem(), limit);
+      case 'locations':
+        return serializeRemList(await rem.portalsAndDocumentsIn(), limit);
+      case 'portal_contents':
+        return serializeRemList(await rem.getPortalDirectlyIncludedRem(), limit);
+      case 'all_in_context':
+        return serializeRemList(await rem.allRemInDocumentOrPortal(), limit);
+      case 'folder_queue':
+        return serializeRemList(await rem.allRemInFolderQueue(), limit);
       case 'cards':
         return { cards: (await rem.getCards()).slice(0, limit).map(serializeCard) };
+      case 'has_powerup':
+        return { hasPowerup: await rem.hasPowerup(requiredString(payload, 'powerupCode')) };
+      case 'hidden_state':
+        return {
+          hiddenState: await rem.getHiddenExplicitlyIncludedState(
+            optionalString(payload, 'portalId')
+          ),
+        };
+      case 'slot_state':
+        return { isSlot: await rem.isSlot() };
+      case 'powerup_property': {
+        const powerupCode = requiredString(payload, 'powerupCode');
+        const powerupSlot = requiredString(payload, 'powerupSlot');
+        const [value, richText, propertyRem] = await Promise.all([
+          rem.getPowerupProperty(powerupCode, powerupSlot),
+          rem.getPowerupPropertyAsRichText(powerupCode, powerupSlot),
+          rem.getPowerupPropertyAsRem(powerupCode, powerupSlot),
+        ]);
+        return { value, richText, propertyRem: serializeRem(propertyRem) };
+      }
+      case 'tag_property': {
+        const propertyId = requiredString(payload, 'propertyId');
+        const [value, propertyRem] = await Promise.all([
+          rem.getTagPropertyValue(propertyId),
+          rem.getTagPropertyAsRem(propertyId),
+        ]);
+        return { value, propertyRem: serializeRem(propertyRem) };
+      }
+      case 'metadata': {
+        const portalId = optionalString(payload, 'portalId');
+        const [
+          isTable,
+          siblingPosition,
+          visibleSiblingPosition,
+          lastPracticed,
+          lastMovedAt,
+          schemaVersion,
+          embeddedQueueViewMode,
+          timesSelectedInSearch,
+          portalType,
+          remType,
+          isPowerup,
+          isPowerupEnum,
+          isPowerupPropertyListItem,
+          isPowerupSlot,
+          isProperty,
+          propertyType,
+          isCollapsed,
+        ] = await Promise.all([
+          rem.isTable(),
+          rem.positionAmongstSiblings(portalId),
+          rem.positionAmongstVisibleSiblings(portalId),
+          rem.getLastPracticed(),
+          rem.getLastTimeMovedTo(),
+          rem.getSchemaVersion(),
+          rem.embeddedQueueViewMode(),
+          rem.timesSelectedInSearch(),
+          rem.getPortalType(),
+          rem.getType(),
+          rem.isPowerup(),
+          rem.isPowerupEnum(),
+          rem.isPowerupPropertyListItem(),
+          rem.isPowerupSlot(),
+          rem.isProperty(),
+          rem.getPropertyType(),
+          portalId ? rem.isCollapsed(portalId) : Promise.resolve(undefined),
+        ]);
+        return {
+          isTable,
+          siblingPosition,
+          visibleSiblingPosition,
+          lastPracticed,
+          lastMovedAt,
+          schemaVersion,
+          embeddedQueueViewMode,
+          timesSelectedInSearch,
+          portalType,
+          remType,
+          isPowerup,
+          isPowerupEnum,
+          isPowerupPropertyListItem,
+          isPowerupSlot,
+          isProperty,
+          propertyType,
+          isCollapsed,
+        };
+      }
       case 'state': {
         const [
           isDocument,
@@ -402,6 +570,35 @@ export class SdkAgent {
 
   private async remWrite(payload: Record<string, unknown>): Promise<unknown> {
     const operation = requiredString(payload, 'operation');
+    if (operation === 'create_single_markdown') {
+      return {
+        rem: serializeRem(
+          await this.plugin.rem.createSingleRemWithMarkdown(
+            requiredString(payload, 'markdown'),
+            optionalString(payload, 'parentRemId')
+          )
+        ),
+      };
+    }
+    if (operation === 'create_tree_markdown') {
+      return {
+        rems: (
+          await this.plugin.rem.createTreeWithMarkdown(
+            requiredString(payload, 'markdown'),
+            optionalString(payload, 'parentRemId')
+          )
+        ).map(serializeRem),
+      };
+    }
+    if (operation === 'move_many') {
+      await this.plugin.rem.moveRems(
+        requiredStringArray(payload, 'remIds'),
+        requiredString(payload, 'targetRemId'),
+        requiredInteger(payload, 'position'),
+        optionalString(payload, 'portalId')
+      );
+      return { applied: true, remIds: requiredStringArray(payload, 'remIds') };
+    }
     if (operation === 'create_rem') {
       return { rem: serializeRem(await this.plugin.rem.createRem()) };
     }
@@ -431,6 +628,9 @@ export class SdkAgent {
         break;
       case 'set_back_text':
         await rem.setBackText(optionalRichText(payload, 'richText'));
+        break;
+      case 'insert_html':
+        await this.plugin.richText.parseAndInsertHtml(requiredString(payload, 'html'), rem);
         break;
       case 'add_tag':
         await rem.addTag(requiredString(payload, 'targetRemId'));
@@ -506,6 +706,25 @@ export class SdkAgent {
       case 'set_property':
         await rem.setIsProperty(requiredBoolean(payload, 'value'));
         break;
+      case 'set_tag_property_value':
+        await rem.setTagPropertyValue(
+          requiredString(payload, 'propertyId'),
+          optionalRichText(payload, 'richText')
+        );
+        break;
+      case 'add_powerup':
+        await rem.addPowerup(requiredString(payload, 'powerupCode'));
+        break;
+      case 'remove_powerup':
+        await rem.removePowerup(requiredString(payload, 'powerupCode'));
+        break;
+      case 'set_powerup_property':
+        await rem.setPowerupProperty(
+          requiredString(payload, 'powerupCode'),
+          requiredString(payload, 'powerupSlot'),
+          requiredRichText(payload, 'richText')
+        );
+        break;
       case 'set_folder':
         await rem.setIsFolder(requiredBoolean(payload, 'value'));
         break;
@@ -532,6 +751,36 @@ export class SdkAgent {
       case 'collapse':
         await rem.collapse(optionalString(payload, 'portalId'));
         break;
+      case 'set_collapsed':
+        await rem.setIsCollapsed(
+          requiredBoolean(payload, 'value'),
+          requiredString(payload, 'portalId')
+        );
+        break;
+      case 'set_hidden_state':
+        await rem.setHiddenExplicitlyIncludedState(
+          requiredEnum(payload, 'value', ['hidden', 'included', 'none']),
+          optionalString(payload, 'portalId')
+        );
+        break;
+      case 'set_slot':
+        await rem.setIsSlot(requiredBoolean(payload, 'value'));
+        break;
+      case 'set_table_filter':
+        await rem.setTableFilter(requiredObject(payload, 'filter') as unknown as SearchPortalQuery);
+        break;
+      case 'copy_reference':
+        await rem.copyReferenceToClipboard();
+        break;
+      case 'copy_portal_reference':
+        await rem.copyPortalReferenceToClipboard();
+        break;
+      case 'copy_tag_reference':
+        await rem.copyTagReferenceToClipboard();
+        break;
+      case 'scroll_to_reader_highlight':
+        await rem.scrollToReaderHighlight();
+        break;
       default:
         throw new Error(`Unsupported Rem write operation: ${operation}`);
     }
@@ -551,6 +800,179 @@ export class SdkAgent {
       throw new Error(`Unsupported Rem destructive operation: ${operation}`);
     }
     return { applied: true };
+  }
+
+  private async richTextRead(payload: Record<string, unknown>): Promise<unknown> {
+    const operation = requiredString(payload, 'operation');
+    const richText = () => requiredRichText(payload, 'richText');
+    const format = () => requiredString(payload, 'format') as RichTextFormatName;
+    switch (operation) {
+      case 'text':
+        return {
+          richText: await this.plugin.richText
+            .text(requiredString(payload, 'text'), optionalStringArray(payload, 'formats') as never)
+            .value(),
+        };
+      case 'code':
+        return {
+          richText: await this.plugin.richText
+            .code(requiredString(payload, 'text'), requiredString(payload, 'language'))
+            .value(),
+        };
+      case 'image':
+        return {
+          richText: await this.plugin.richText
+            .image(
+              requiredString(payload, 'url'),
+              optionalInteger(payload, 'width'),
+              optionalInteger(payload, 'height')
+            )
+            .value(),
+        };
+      case 'audio':
+        return {
+          richText: await this.plugin.richText.audio(requiredString(payload, 'url')).value(),
+        };
+      case 'video':
+        return {
+          richText: await this.plugin.richText.video(requiredString(payload, 'url')).value(),
+        };
+      case 'latex':
+        return {
+          richText: await this.plugin.richText
+            .latex(requiredString(payload, 'text'), optionalBoolean(payload, 'block'))
+            .value(),
+        };
+      case 'newline':
+        return { richText: await this.plugin.richText.newline().value() };
+      case 'rem_reference':
+        return {
+          richText: await this.plugin.richText.rem(requiredString(payload, 'remId')).value(),
+        };
+      case 'normalize':
+        return { richText: await this.plugin.richText.normalize(richText()) };
+      case 'to_html':
+        return { html: await this.plugin.richText.toHTML(richText()) };
+      case 'to_markdown':
+        return { markdown: await this.plugin.richText.toMarkdown(richText()) };
+      case 'to_string':
+        return { text: await this.plugin.richText.toString(richText()) };
+      case 'length':
+        return { length: await this.plugin.richText.length(richText()) };
+      case 'empty':
+        return {
+          empty: await this.plugin.richText.empty(
+            richText(),
+            optionalBoolean(payload, 'allowSpaces')
+          ),
+        };
+      case 'trim':
+        return { richText: await this.plugin.richText.trim(richText()) };
+      case 'trim_start':
+        return { richText: await this.plugin.richText.trimStart(richText()) };
+      case 'trim_end':
+        return { richText: await this.plugin.richText.trimEnd(richText()) };
+      case 'rem_ids':
+        return { remIds: await this.plugin.richText.getRemIdsFromRichText(richText()) };
+      case 'rem_and_alias_ids':
+        return { remIds: await this.plugin.richText.getRemAndAliasIdsFromRichText(richText()) };
+      case 'deep_rem_ids':
+        return { remIds: await this.plugin.richText.deepGetRemIdsFromRichText(richText()) };
+      case 'deep_rem_and_alias_ids':
+        return {
+          remIds: await this.plugin.richText.deepGetRemAndAliasIdsFromRichText(richText()),
+        };
+      case 'external_urls':
+        return { urls: await this.plugin.richText.findAllExternalURLs(richText()) };
+      case 'equals':
+        return {
+          equal: await this.plugin.richText.equals(
+            richText(),
+            requiredRichText(payload, 'richText2')
+          ),
+        };
+      case 'substring':
+        return {
+          richText: await this.plugin.richText.substring(
+            richText(),
+            requiredInteger(payload, 'start'),
+            optionalInteger(payload, 'end')
+          ),
+        };
+      case 'char_at':
+        return {
+          character: await this.plugin.richText.charAt(
+            richText(),
+            requiredInteger(payload, 'index')
+          ),
+        };
+      case 'index_of':
+        return {
+          index: await this.plugin.richText.indexOf(
+            richText(),
+            requiredString(payload, 'character'),
+            optionalInteger(payload, 'startChar')
+          ),
+        };
+      case 'index_of_element':
+        return {
+          index: await this.plugin.richText.indexOfElementAt(
+            richText(),
+            requiredInteger(payload, 'position')
+          ),
+        };
+      case 'split':
+        return {
+          richText: await this.plugin.richText.split(
+            richText(),
+            requiredString(payload, 'separationCharacter')
+          ),
+        };
+      case 'split_rich_text':
+        return {
+          richText: await this.plugin.richText.splitRichText(
+            richText(),
+            requiredRichText(payload, 'richText2')
+          ),
+        };
+      case 'replace_all':
+        return {
+          richText: await this.plugin.richText.replaceAllRichText(
+            richText(),
+            requiredRichText(payload, 'findRichText'),
+            requiredRichText(payload, 'replacementRichText')
+          ),
+        };
+      case 'apply_format':
+        return {
+          richText: await this.plugin.richText.applyTextFormatToRange(
+            richText(),
+            requiredInteger(payload, 'start'),
+            requiredInteger(payload, 'end'),
+            format()
+          ),
+        };
+      case 'remove_format':
+        return {
+          richText: await this.plugin.richText.removeTextFormatFromRange(
+            richText(),
+            requiredInteger(payload, 'start'),
+            requiredInteger(payload, 'end'),
+            format()
+          ),
+        };
+      case 'toggle_format':
+        return {
+          richText: await this.plugin.richText.toggleTextFormatOnRange(
+            richText(),
+            requiredInteger(payload, 'start'),
+            requiredInteger(payload, 'end'),
+            format()
+          ),
+        };
+      default:
+        throw new Error(`Unsupported rich-text operation: ${operation}`);
+    }
   }
 
   private async kbRead(payload: Record<string, unknown>): Promise<unknown> {
@@ -717,6 +1139,13 @@ function requiredStringArray(payload: Record<string, unknown>, key: string): str
     throw new Error(`${key} must be an array of strings`);
   return value as string[];
 }
+function optionalStringArray(payload: Record<string, unknown>, key: string): string[] | undefined {
+  const value = payload[key];
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.some((item) => typeof item !== 'string'))
+    throw new Error(`${key} must be an array of strings`);
+  return value as string[];
+}
 function requiredRichText(payload: Record<string, unknown>, key: string): RichTextInterface {
   const value = payload[key];
   if (typeof value !== 'string' && !Array.isArray(value))
@@ -729,11 +1158,17 @@ function optionalRichText(
 ): RichTextInterface | undefined {
   return payload[key] === undefined ? undefined : requiredRichText(payload, key);
 }
-function requiredObjectOrString(payload: Record<string, unknown>, key: string): any {
+function requiredObjectOrString(payload: Record<string, unknown>, key: string): RemIdWindowTree {
   const value = payload[key];
   if (typeof value !== 'string' && (typeof value !== 'object' || value === null))
     throw new Error(`${key} must be a window tree`);
-  return value;
+  return value as RemIdWindowTree;
+}
+function requiredObject(payload: Record<string, unknown>, key: string): Record<string, unknown> {
+  const value = payload[key];
+  if (typeof value !== 'object' || value === null || Array.isArray(value))
+    throw new Error(`${key} must be an object`);
+  return value as Record<string, unknown>;
 }
 function requiredEnum<T extends string>(
   payload: Record<string, unknown>,

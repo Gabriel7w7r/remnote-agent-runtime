@@ -26,7 +26,7 @@ The SDK coverage lock inventories all public methods in the pinned RemNote plugi
 - Autonomous operations are written to a local JSONL audit log using metadata and payload hashes rather than note contents.
 - Runtime release archives are reproducible and accompanied by SHA-256 checksums.
 
-Remote exposure is intentionally unsupported in `0.19.0`. Do not tunnel ports `3001`, `3002`, or `8080` to another machine.
+Remote exposure is intentionally unsupported in `0.20.0`. Do not tunnel ports `3001`, `3002`, or `8080` to another machine.
 
 ## Workspace
 

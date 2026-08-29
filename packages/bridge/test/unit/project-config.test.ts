@@ -16,4 +16,14 @@ describe('project config', () => {
 
     expect(config.test?.coverage?.exclude).not.toContain('src/widgets/**/*.tsx');
   });
+
+  it('does not record unmatched declarations as synthetic SDK methods', () => {
+    const coverage = JSON.parse(readFileSync('sdk-capabilities.json', 'utf8')) as {
+      namespaces: Record<string, Record<string, unknown>>;
+    };
+
+    for (const methods of Object.values(coverage.namespaces)) {
+      expect(methods).not.toHaveProperty('undefined');
+    }
+  });
 });

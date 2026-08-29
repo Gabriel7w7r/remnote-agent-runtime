@@ -7,6 +7,19 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-08-28
+
+### Added
+
+- Add MCP operations for batch Rem creation and movement, relationships, metadata, powerups, properties, slots,
+  Advanced Table filters, HTML insertion, card inspection, focus context, and opening the Agent sidebar.
+- Add `remnote_rich_text` for read-scoped official rich-text construction, formatting, inspection, and conversion.
+
+### Changed
+
+- Synchronize the protocol, server, RemNote bridge, MCPB fallback metadata, and release artifacts at version `0.20.0`.
+- Expand the RemNote SDK coverage lock to 220 of 254 public methods and document the 34 deliberately excluded internals.
+
 ## [0.19.0] - 2026-08-28
 
 ### Added

@@ -643,6 +643,17 @@ export const FALLBACK_TOOLS = [
           type: 'string',
           description: 'Target Rem ID when required',
         },
+        remIds: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          minItems: 1,
+        },
+        parentRemId: {
+          type: ['string', 'null'],
+          description: 'Parent Rem ID, or null when an operation supports the knowledge-base root',
+        },
         targetRemId: {
           type: ['string', 'null'],
           description: 'Related Rem ID, or null for a top-level parent',
@@ -660,11 +671,97 @@ export const FALLBACK_TOOLS = [
         richText: {
           description: 'Plain string or RemNote rich-text array',
         },
+        richText2: {
+          description: 'Second plain string or RemNote rich-text array',
+        },
+        findRichText: {
+          description: 'Rich text to find',
+        },
+        replacementRichText: {
+          description: 'Replacement rich text',
+        },
         text: {
           type: 'string',
         },
         markdown: {
           type: 'string',
+        },
+        html: {
+          type: 'string',
+          description: 'HTML to parse and insert into the target Rem',
+        },
+        url: {
+          type: 'string',
+        },
+        language: {
+          type: 'string',
+        },
+        formats: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+        format: {
+          type: 'string',
+        },
+        start: {
+          type: 'integer',
+          minimum: 0,
+        },
+        end: {
+          type: 'integer',
+          minimum: 0,
+        },
+        index: {
+          type: 'integer',
+          minimum: 0,
+        },
+        startChar: {
+          type: 'integer',
+          minimum: 0,
+        },
+        width: {
+          type: 'integer',
+          minimum: 1,
+        },
+        height: {
+          type: 'integer',
+          minimum: 1,
+        },
+        character: {
+          type: 'string',
+        },
+        separationCharacter: {
+          type: 'string',
+        },
+        allowSpaces: {
+          type: 'boolean',
+        },
+        block: {
+          type: 'boolean',
+        },
+        portalId: {
+          type: 'string',
+          description: 'Portal context ID when required',
+        },
+        position: {
+          type: 'integer',
+          minimum: 0,
+        },
+        powerupCode: {
+          type: 'string',
+        },
+        powerupSlot: {
+          type: 'string',
+        },
+        propertyId: {
+          type: 'string',
+        },
+        filter: {
+          type: 'object',
+          description: 'RemNote SearchPortalQuery used to configure an Advanced Table filter',
+          additionalProperties: true,
         },
         value: {
           description: 'Operation-specific boolean or enum value',
@@ -682,7 +779,7 @@ export const FALLBACK_TOOLS = [
   {
     name: 'remnote_window',
     description:
-      'Inspect and control RemNote panes, focused pane, address URL, open Rems, and complete pane trees.',
+      'Inspect and control RemNote panes, focused pane, address URL, open Rems, complete pane trees, and the RemNote Agent sidebar.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -696,17 +793,31 @@ export const FALLBACK_TOOLS = [
             'get_url',
             'get_open_pane_rem_ids',
             'get_open_pane_rem_id',
+            'get_focused_rem',
+            'get_focused_portal',
             'set_tree',
             'set_tree_string',
             'focus_pane',
             'set_url',
             'open_rem',
+            'open_agent_sidebar',
           ],
           description: 'Operation to execute',
         },
         remId: {
           type: 'string',
           description: 'Target Rem ID when required',
+        },
+        remIds: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          minItems: 1,
+        },
+        parentRemId: {
+          type: ['string', 'null'],
+          description: 'Parent Rem ID, or null when an operation supports the knowledge-base root',
         },
         targetRemId: {
           type: ['string', 'null'],
@@ -725,11 +836,97 @@ export const FALLBACK_TOOLS = [
         richText: {
           description: 'Plain string or RemNote rich-text array',
         },
+        richText2: {
+          description: 'Second plain string or RemNote rich-text array',
+        },
+        findRichText: {
+          description: 'Rich text to find',
+        },
+        replacementRichText: {
+          description: 'Replacement rich text',
+        },
         text: {
           type: 'string',
         },
         markdown: {
           type: 'string',
+        },
+        html: {
+          type: 'string',
+          description: 'HTML to parse and insert into the target Rem',
+        },
+        url: {
+          type: 'string',
+        },
+        language: {
+          type: 'string',
+        },
+        formats: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+        format: {
+          type: 'string',
+        },
+        start: {
+          type: 'integer',
+          minimum: 0,
+        },
+        end: {
+          type: 'integer',
+          minimum: 0,
+        },
+        index: {
+          type: 'integer',
+          minimum: 0,
+        },
+        startChar: {
+          type: 'integer',
+          minimum: 0,
+        },
+        width: {
+          type: 'integer',
+          minimum: 1,
+        },
+        height: {
+          type: 'integer',
+          minimum: 1,
+        },
+        character: {
+          type: 'string',
+        },
+        separationCharacter: {
+          type: 'string',
+        },
+        allowSpaces: {
+          type: 'boolean',
+        },
+        block: {
+          type: 'boolean',
+        },
+        portalId: {
+          type: 'string',
+          description: 'Portal context ID when required',
+        },
+        position: {
+          type: 'integer',
+          minimum: 0,
+        },
+        powerupCode: {
+          type: 'string',
+        },
+        powerupSlot: {
+          type: 'string',
+        },
+        propertyId: {
+          type: 'string',
+        },
+        filter: {
+          type: 'object',
+          description: 'RemNote SearchPortalQuery used to configure an Advanced Table filter',
+          additionalProperties: true,
         },
         value: {
           description: 'Operation-specific boolean or enum value',
@@ -760,6 +957,17 @@ export const FALLBACK_TOOLS = [
           type: 'string',
           description: 'Target Rem ID when required',
         },
+        remIds: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          minItems: 1,
+        },
+        parentRemId: {
+          type: ['string', 'null'],
+          description: 'Parent Rem ID, or null when an operation supports the knowledge-base root',
+        },
         targetRemId: {
           type: ['string', 'null'],
           description: 'Related Rem ID, or null for a top-level parent',
@@ -777,11 +985,97 @@ export const FALLBACK_TOOLS = [
         richText: {
           description: 'Plain string or RemNote rich-text array',
         },
+        richText2: {
+          description: 'Second plain string or RemNote rich-text array',
+        },
+        findRichText: {
+          description: 'Rich text to find',
+        },
+        replacementRichText: {
+          description: 'Replacement rich text',
+        },
         text: {
           type: 'string',
         },
         markdown: {
           type: 'string',
+        },
+        html: {
+          type: 'string',
+          description: 'HTML to parse and insert into the target Rem',
+        },
+        url: {
+          type: 'string',
+        },
+        language: {
+          type: 'string',
+        },
+        formats: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+        format: {
+          type: 'string',
+        },
+        start: {
+          type: 'integer',
+          minimum: 0,
+        },
+        end: {
+          type: 'integer',
+          minimum: 0,
+        },
+        index: {
+          type: 'integer',
+          minimum: 0,
+        },
+        startChar: {
+          type: 'integer',
+          minimum: 0,
+        },
+        width: {
+          type: 'integer',
+          minimum: 1,
+        },
+        height: {
+          type: 'integer',
+          minimum: 1,
+        },
+        character: {
+          type: 'string',
+        },
+        separationCharacter: {
+          type: 'string',
+        },
+        allowSpaces: {
+          type: 'boolean',
+        },
+        block: {
+          type: 'boolean',
+        },
+        portalId: {
+          type: 'string',
+          description: 'Portal context ID when required',
+        },
+        position: {
+          type: 'integer',
+          minimum: 0,
+        },
+        powerupCode: {
+          type: 'string',
+        },
+        powerupSlot: {
+          type: 'string',
+        },
+        propertyId: {
+          type: 'string',
+        },
+        filter: {
+          type: 'object',
+          description: 'RemNote SearchPortalQuery used to configure an Advanced Table filter',
+          additionalProperties: true,
         },
         value: {
           description: 'Operation-specific boolean or enum value',
@@ -805,12 +1099,31 @@ export const FALLBACK_TOOLS = [
       properties: {
         operation: {
           type: 'string',
-          enum: ['get', 'find_many', 'get_all', 'update_repetition', 'remove'],
+          enum: [
+            'get',
+            'find_many',
+            'get_all',
+            'get_rem',
+            'get_type',
+            'update_repetition',
+            'remove',
+          ],
           description: 'Operation to execute',
         },
         remId: {
           type: 'string',
           description: 'Target Rem ID when required',
+        },
+        remIds: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          minItems: 1,
+        },
+        parentRemId: {
+          type: ['string', 'null'],
+          description: 'Parent Rem ID, or null when an operation supports the knowledge-base root',
         },
         targetRemId: {
           type: ['string', 'null'],
@@ -829,11 +1142,97 @@ export const FALLBACK_TOOLS = [
         richText: {
           description: 'Plain string or RemNote rich-text array',
         },
+        richText2: {
+          description: 'Second plain string or RemNote rich-text array',
+        },
+        findRichText: {
+          description: 'Rich text to find',
+        },
+        replacementRichText: {
+          description: 'Replacement rich text',
+        },
         text: {
           type: 'string',
         },
         markdown: {
           type: 'string',
+        },
+        html: {
+          type: 'string',
+          description: 'HTML to parse and insert into the target Rem',
+        },
+        url: {
+          type: 'string',
+        },
+        language: {
+          type: 'string',
+        },
+        formats: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+        format: {
+          type: 'string',
+        },
+        start: {
+          type: 'integer',
+          minimum: 0,
+        },
+        end: {
+          type: 'integer',
+          minimum: 0,
+        },
+        index: {
+          type: 'integer',
+          minimum: 0,
+        },
+        startChar: {
+          type: 'integer',
+          minimum: 0,
+        },
+        width: {
+          type: 'integer',
+          minimum: 1,
+        },
+        height: {
+          type: 'integer',
+          minimum: 1,
+        },
+        character: {
+          type: 'string',
+        },
+        separationCharacter: {
+          type: 'string',
+        },
+        allowSpaces: {
+          type: 'boolean',
+        },
+        block: {
+          type: 'boolean',
+        },
+        portalId: {
+          type: 'string',
+          description: 'Portal context ID when required',
+        },
+        position: {
+          type: 'integer',
+          minimum: 0,
+        },
+        powerupCode: {
+          type: 'string',
+        },
+        powerupSlot: {
+          type: 'string',
+        },
+        propertyId: {
+          type: 'string',
+        },
+        filter: {
+          type: 'object',
+          description: 'RemNote SearchPortalQuery used to configure an Advanced Table filter',
+          additionalProperties: true,
         },
         value: {
           description: 'Operation-specific boolean or enum value',
@@ -851,13 +1250,18 @@ export const FALLBACK_TOOLS = [
   {
     name: 'remnote_rem',
     description:
-      'Low-level stable-ID Rem control: relations, formatting, types, flashcard settings, portals, sources, aliases, hierarchy, tables, links, merge, and deletion.',
+      'Low-level stable-ID Rem control: batch creation and movement, relations, metadata, formatting, HTML, powerups, properties, types, flashcard settings, portals, sources, aliases, hierarchy, Advanced Table filters, links, merge, and deletion.',
     inputSchema: {
       type: 'object',
       properties: {
         operation: {
           type: 'string',
           enum: [
+            'find_by_name',
+            'find_many',
+            'get_all',
+            'get_powerup',
+            'get_powerup_slot',
             'get',
             'children',
             'tags',
@@ -866,15 +1270,34 @@ export const FALLBACK_TOOLS = [
             'descendants',
             'referencing',
             'referenced',
+            'deep_referenced',
             'sources',
+            'siblings',
+            'visible_siblings',
+            'ancestor_tags',
+            'descendant_tags',
+            'locations',
+            'portal_contents',
+            'all_in_context',
+            'folder_queue',
             'cards',
+            'has_powerup',
+            'hidden_state',
+            'slot_state',
+            'powerup_property',
+            'tag_property',
+            'metadata',
             'state',
+            'create_single_markdown',
+            'create_tree_markdown',
+            'move_many',
             'create_rem',
             'create_portal',
             'create_link',
             'create_table',
             'set_text',
             'set_back_text',
+            'insert_html',
             'add_tag',
             'remove_tag',
             'add_to_portal',
@@ -896,6 +1319,10 @@ export const FALLBACK_TOOLS = [
             'set_font_size',
             'set_highlight',
             'set_property',
+            'set_tag_property_value',
+            'add_powerup',
+            'remove_powerup',
+            'set_powerup_property',
             'set_folder',
             'set_practice',
             'set_practice_direction',
@@ -903,6 +1330,14 @@ export const FALLBACK_TOOLS = [
             'open_page',
             'expand',
             'collapse',
+            'set_collapsed',
+            'set_hidden_state',
+            'set_slot',
+            'set_table_filter',
+            'copy_reference',
+            'copy_portal_reference',
+            'copy_tag_reference',
+            'scroll_to_reader_highlight',
             'remove',
             'merge',
             'merge_alias',
@@ -912,6 +1347,17 @@ export const FALLBACK_TOOLS = [
         remId: {
           type: 'string',
           description: 'Target Rem ID when required',
+        },
+        remIds: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          minItems: 1,
+        },
+        parentRemId: {
+          type: ['string', 'null'],
+          description: 'Parent Rem ID, or null when an operation supports the knowledge-base root',
         },
         targetRemId: {
           type: ['string', 'null'],
@@ -930,11 +1376,280 @@ export const FALLBACK_TOOLS = [
         richText: {
           description: 'Plain string or RemNote rich-text array',
         },
+        richText2: {
+          description: 'Second plain string or RemNote rich-text array',
+        },
+        findRichText: {
+          description: 'Rich text to find',
+        },
+        replacementRichText: {
+          description: 'Replacement rich text',
+        },
         text: {
           type: 'string',
         },
         markdown: {
           type: 'string',
+        },
+        html: {
+          type: 'string',
+          description: 'HTML to parse and insert into the target Rem',
+        },
+        url: {
+          type: 'string',
+        },
+        language: {
+          type: 'string',
+        },
+        formats: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+        format: {
+          type: 'string',
+        },
+        start: {
+          type: 'integer',
+          minimum: 0,
+        },
+        end: {
+          type: 'integer',
+          minimum: 0,
+        },
+        index: {
+          type: 'integer',
+          minimum: 0,
+        },
+        startChar: {
+          type: 'integer',
+          minimum: 0,
+        },
+        width: {
+          type: 'integer',
+          minimum: 1,
+        },
+        height: {
+          type: 'integer',
+          minimum: 1,
+        },
+        character: {
+          type: 'string',
+        },
+        separationCharacter: {
+          type: 'string',
+        },
+        allowSpaces: {
+          type: 'boolean',
+        },
+        block: {
+          type: 'boolean',
+        },
+        portalId: {
+          type: 'string',
+          description: 'Portal context ID when required',
+        },
+        position: {
+          type: 'integer',
+          minimum: 0,
+        },
+        powerupCode: {
+          type: 'string',
+        },
+        powerupSlot: {
+          type: 'string',
+        },
+        propertyId: {
+          type: 'string',
+        },
+        filter: {
+          type: 'object',
+          description: 'RemNote SearchPortalQuery used to configure an Advanced Table filter',
+          additionalProperties: true,
+        },
+        value: {
+          description: 'Operation-specific boolean or enum value',
+        },
+        limit: {
+          type: 'integer',
+          minimum: 1,
+          maximum: 1000,
+        },
+      },
+      required: ['operation'],
+      additionalProperties: true,
+    },
+  },
+  {
+    name: 'remnote_rich_text',
+    description:
+      'Build, format, inspect, split, compare, and convert official RemNote rich text, including references, code, LaTeX, images, audio, and video. These are read-scoped pure transformations and do not modify the knowledge base.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        operation: {
+          type: 'string',
+          enum: [
+            'text',
+            'code',
+            'image',
+            'audio',
+            'video',
+            'latex',
+            'newline',
+            'rem_reference',
+            'normalize',
+            'to_html',
+            'to_markdown',
+            'to_string',
+            'length',
+            'empty',
+            'trim',
+            'trim_start',
+            'trim_end',
+            'rem_ids',
+            'rem_and_alias_ids',
+            'deep_rem_ids',
+            'deep_rem_and_alias_ids',
+            'external_urls',
+            'equals',
+            'substring',
+            'char_at',
+            'index_of',
+            'index_of_element',
+            'split',
+            'split_rich_text',
+            'replace_all',
+            'apply_format',
+            'remove_format',
+            'toggle_format',
+          ],
+          description: 'Operation to execute',
+        },
+        remId: {
+          type: 'string',
+          description: 'Target Rem ID when required',
+        },
+        remIds: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          minItems: 1,
+        },
+        parentRemId: {
+          type: ['string', 'null'],
+          description: 'Parent Rem ID, or null when an operation supports the knowledge-base root',
+        },
+        targetRemId: {
+          type: ['string', 'null'],
+          description: 'Related Rem ID, or null for a top-level parent',
+        },
+        cardId: {
+          type: 'string',
+          description: 'Target card ID when required',
+        },
+        cardIds: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+        richText: {
+          description: 'Plain string or RemNote rich-text array',
+        },
+        richText2: {
+          description: 'Second plain string or RemNote rich-text array',
+        },
+        findRichText: {
+          description: 'Rich text to find',
+        },
+        replacementRichText: {
+          description: 'Replacement rich text',
+        },
+        text: {
+          type: 'string',
+        },
+        markdown: {
+          type: 'string',
+        },
+        html: {
+          type: 'string',
+          description: 'HTML to parse and insert into the target Rem',
+        },
+        url: {
+          type: 'string',
+        },
+        language: {
+          type: 'string',
+        },
+        formats: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+        format: {
+          type: 'string',
+        },
+        start: {
+          type: 'integer',
+          minimum: 0,
+        },
+        end: {
+          type: 'integer',
+          minimum: 0,
+        },
+        index: {
+          type: 'integer',
+          minimum: 0,
+        },
+        startChar: {
+          type: 'integer',
+          minimum: 0,
+        },
+        width: {
+          type: 'integer',
+          minimum: 1,
+        },
+        height: {
+          type: 'integer',
+          minimum: 1,
+        },
+        character: {
+          type: 'string',
+        },
+        separationCharacter: {
+          type: 'string',
+        },
+        allowSpaces: {
+          type: 'boolean',
+        },
+        block: {
+          type: 'boolean',
+        },
+        portalId: {
+          type: 'string',
+          description: 'Portal context ID when required',
+        },
+        position: {
+          type: 'integer',
+          minimum: 0,
+        },
+        powerupCode: {
+          type: 'string',
+        },
+        powerupSlot: {
+          type: 'string',
+        },
+        propertyId: {
+          type: 'string',
+        },
+        filter: {
+          type: 'object',
+          description: 'RemNote SearchPortalQuery used to configure an Advanced Table filter',
+          additionalProperties: true,
         },
         value: {
           description: 'Operation-specific boolean or enum value',
@@ -965,6 +1680,17 @@ export const FALLBACK_TOOLS = [
           type: 'string',
           description: 'Target Rem ID when required',
         },
+        remIds: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          minItems: 1,
+        },
+        parentRemId: {
+          type: ['string', 'null'],
+          description: 'Parent Rem ID, or null when an operation supports the knowledge-base root',
+        },
         targetRemId: {
           type: ['string', 'null'],
           description: 'Related Rem ID, or null for a top-level parent',
@@ -982,11 +1708,97 @@ export const FALLBACK_TOOLS = [
         richText: {
           description: 'Plain string or RemNote rich-text array',
         },
+        richText2: {
+          description: 'Second plain string or RemNote rich-text array',
+        },
+        findRichText: {
+          description: 'Rich text to find',
+        },
+        replacementRichText: {
+          description: 'Replacement rich text',
+        },
         text: {
           type: 'string',
         },
         markdown: {
           type: 'string',
+        },
+        html: {
+          type: 'string',
+          description: 'HTML to parse and insert into the target Rem',
+        },
+        url: {
+          type: 'string',
+        },
+        language: {
+          type: 'string',
+        },
+        formats: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+        format: {
+          type: 'string',
+        },
+        start: {
+          type: 'integer',
+          minimum: 0,
+        },
+        end: {
+          type: 'integer',
+          minimum: 0,
+        },
+        index: {
+          type: 'integer',
+          minimum: 0,
+        },
+        startChar: {
+          type: 'integer',
+          minimum: 0,
+        },
+        width: {
+          type: 'integer',
+          minimum: 1,
+        },
+        height: {
+          type: 'integer',
+          minimum: 1,
+        },
+        character: {
+          type: 'string',
+        },
+        separationCharacter: {
+          type: 'string',
+        },
+        allowSpaces: {
+          type: 'boolean',
+        },
+        block: {
+          type: 'boolean',
+        },
+        portalId: {
+          type: 'string',
+          description: 'Portal context ID when required',
+        },
+        position: {
+          type: 'integer',
+          minimum: 0,
+        },
+        powerupCode: {
+          type: 'string',
+        },
+        powerupSlot: {
+          type: 'string',
+        },
+        propertyId: {
+          type: 'string',
+        },
+        filter: {
+          type: 'object',
+          description: 'RemNote SearchPortalQuery used to configure an Advanced Table filter',
+          additionalProperties: true,
         },
         value: {
           description: 'Operation-specific boolean or enum value',
@@ -1016,6 +1828,17 @@ export const FALLBACK_TOOLS = [
           type: 'string',
           description: 'Target Rem ID when required',
         },
+        remIds: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          minItems: 1,
+        },
+        parentRemId: {
+          type: ['string', 'null'],
+          description: 'Parent Rem ID, or null when an operation supports the knowledge-base root',
+        },
         targetRemId: {
           type: ['string', 'null'],
           description: 'Related Rem ID, or null for a top-level parent',
@@ -1033,11 +1856,97 @@ export const FALLBACK_TOOLS = [
         richText: {
           description: 'Plain string or RemNote rich-text array',
         },
+        richText2: {
+          description: 'Second plain string or RemNote rich-text array',
+        },
+        findRichText: {
+          description: 'Rich text to find',
+        },
+        replacementRichText: {
+          description: 'Replacement rich text',
+        },
         text: {
           type: 'string',
         },
         markdown: {
           type: 'string',
+        },
+        html: {
+          type: 'string',
+          description: 'HTML to parse and insert into the target Rem',
+        },
+        url: {
+          type: 'string',
+        },
+        language: {
+          type: 'string',
+        },
+        formats: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+        format: {
+          type: 'string',
+        },
+        start: {
+          type: 'integer',
+          minimum: 0,
+        },
+        end: {
+          type: 'integer',
+          minimum: 0,
+        },
+        index: {
+          type: 'integer',
+          minimum: 0,
+        },
+        startChar: {
+          type: 'integer',
+          minimum: 0,
+        },
+        width: {
+          type: 'integer',
+          minimum: 1,
+        },
+        height: {
+          type: 'integer',
+          minimum: 1,
+        },
+        character: {
+          type: 'string',
+        },
+        separationCharacter: {
+          type: 'string',
+        },
+        allowSpaces: {
+          type: 'boolean',
+        },
+        block: {
+          type: 'boolean',
+        },
+        portalId: {
+          type: 'string',
+          description: 'Portal context ID when required',
+        },
+        position: {
+          type: 'integer',
+          minimum: 0,
+        },
+        powerupCode: {
+          type: 'string',
+        },
+        powerupSlot: {
+          type: 'string',
+        },
+        propertyId: {
+          type: 'string',
+        },
+        filter: {
+          type: 'object',
+          description: 'RemNote SearchPortalQuery used to configure an Advanced Table filter',
+          additionalProperties: true,
         },
         value: {
           description: 'Operation-specific boolean or enum value',
@@ -1067,6 +1976,17 @@ export const FALLBACK_TOOLS = [
           type: 'string',
           description: 'Target Rem ID when required',
         },
+        remIds: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          minItems: 1,
+        },
+        parentRemId: {
+          type: ['string', 'null'],
+          description: 'Parent Rem ID, or null when an operation supports the knowledge-base root',
+        },
         targetRemId: {
           type: ['string', 'null'],
           description: 'Related Rem ID, or null for a top-level parent',
@@ -1084,11 +2004,97 @@ export const FALLBACK_TOOLS = [
         richText: {
           description: 'Plain string or RemNote rich-text array',
         },
+        richText2: {
+          description: 'Second plain string or RemNote rich-text array',
+        },
+        findRichText: {
+          description: 'Rich text to find',
+        },
+        replacementRichText: {
+          description: 'Replacement rich text',
+        },
         text: {
           type: 'string',
         },
         markdown: {
           type: 'string',
+        },
+        html: {
+          type: 'string',
+          description: 'HTML to parse and insert into the target Rem',
+        },
+        url: {
+          type: 'string',
+        },
+        language: {
+          type: 'string',
+        },
+        formats: {
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+        },
+        format: {
+          type: 'string',
+        },
+        start: {
+          type: 'integer',
+          minimum: 0,
+        },
+        end: {
+          type: 'integer',
+          minimum: 0,
+        },
+        index: {
+          type: 'integer',
+          minimum: 0,
+        },
+        startChar: {
+          type: 'integer',
+          minimum: 0,
+        },
+        width: {
+          type: 'integer',
+          minimum: 1,
+        },
+        height: {
+          type: 'integer',
+          minimum: 1,
+        },
+        character: {
+          type: 'string',
+        },
+        separationCharacter: {
+          type: 'string',
+        },
+        allowSpaces: {
+          type: 'boolean',
+        },
+        block: {
+          type: 'boolean',
+        },
+        portalId: {
+          type: 'string',
+          description: 'Portal context ID when required',
+        },
+        position: {
+          type: 'integer',
+          minimum: 0,
+        },
+        powerupCode: {
+          type: 'string',
+        },
+        powerupSlot: {
+          type: 'string',
+        },
+        propertyId: {
+          type: 'string',
+        },
+        filter: {
+          type: 'object',
+          description: 'RemNote SearchPortalQuery used to configure an Advanced Table filter',
+          additionalProperties: true,
         },
         value: {
           description: 'Operation-specific boolean or enum value',

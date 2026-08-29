@@ -7,6 +7,23 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-08-28
+
+### Added
+
+- Expose batch Markdown creation and movement, deep Rem relationships, metadata, powerups, tag properties, slots,
+  hidden portal state, Advanced Table filters, HTML insertion, clipboard references, and reader-highlight navigation.
+- Add focused Rem and portal discovery, card-to-Rem resolution, and a command that opens the RemNote Agent sidebar.
+- Add a read-scoped rich-text tool for official RemNote rich-text construction, formatting, conversion, references,
+  code, LaTeX, images, audio, and video.
+
+### Changed
+
+- Raise explicit public SDK coverage to 220 of 254 methods while continuing to exclude registration,
+  arbitrary key interception, plugin storage, and other non-content internals.
+- Fix the coverage inventory so unmatched declaration lines are no longer recorded as synthetic `undefined` methods.
+- Synchronize the bridge and runtime compatibility boundary at version `0.20.0`.
+
 ### Added
 
 - Add real RemNote alias writes to `create_note` and `update_note`, with whitespace normalization, exact additive and

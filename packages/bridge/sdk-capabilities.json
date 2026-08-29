@@ -73,16 +73,6 @@
       "waitForInitialSync": {
         "status": "not_exposed",
         "reason": "Not yet exposed by the curated agent API."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
-      }
-    },
-    "base": {
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
       }
     },
     "card": {
@@ -99,12 +89,12 @@
         "reason": "Called by the current bridge implementation."
       },
       "getRem": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "getType": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "remove": {
         "status": "used",
@@ -113,10 +103,6 @@
       "updateCardRepetitionStatus": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
       }
     },
     "date": {
@@ -127,10 +113,6 @@
       "getTodaysDoc": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
       }
     },
     "editor": {
@@ -213,10 +195,6 @@
       "undo": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
       }
     },
     "event": {
@@ -227,24 +205,16 @@
       "removeListener": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
       }
     },
     "focus": {
       "getFocusedPortal": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "getFocusedRem": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       }
     },
     "knowledge_base": {
@@ -255,36 +225,18 @@
       "isPrimaryKnowledgeBase": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
       }
     },
     "messaging": {
       "broadcast": {
         "status": "not_exposed",
         "reason": "Not yet exposed by the curated agent API."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
       }
     },
     "powerup": {
       "getPowerupByCode": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
-      }
-    },
-    "query": {
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       }
     },
     "queue": {
@@ -335,26 +287,18 @@
       "showAnswer": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
       }
     },
     "reader": {
       "addHighlight": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
       }
     },
     "rem": {
       "addPowerup": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "addSource": {
         "status": "used",
@@ -369,32 +313,32 @@
         "reason": "Called by the current bridge implementation."
       },
       "allRemInDocumentOrPortal": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "allRemInFolderQueue": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "ancestorTagRem": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "collapse": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
       },
       "copyPortalReferenceToClipboard": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "copyReferenceToClipboard": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
       },
       "copyTagReferenceToClipboard": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "createLinkRem": {
         "status": "used",
@@ -421,24 +365,24 @@
         "reason": "Called by the current bridge implementation."
       },
       "deepRemsBeingReferenced": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "descendantTagRem": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "embeddedQueueViewMode": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "expand": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
       },
       "findByName": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "findMany": {
         "status": "used",
@@ -477,20 +421,20 @@
         "reason": "Called by the current bridge implementation."
       },
       "getHiddenExplicitlyIncludedState": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "getHighlightColor": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
       },
       "getLastPracticed": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "getLastTimeMovedTo": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "getOrCreateAliasWithText": {
         "status": "used",
@@ -501,16 +445,16 @@
         "reason": "Called by the current bridge implementation."
       },
       "getPortalDirectlyIncludedRem": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "getPortalType": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "getPowerupPropertyAsRem": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "getPracticeDirection": {
         "status": "used",
@@ -521,16 +465,16 @@
         "reason": "Called by the current bridge implementation."
       },
       "getSchemaVersion": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "getSources": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
       },
       "getTagPropertyAsRem": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "getTagPropertyValue": {
         "status": "used",
@@ -545,8 +489,8 @@
         "reason": "Called by the current bridge implementation."
       },
       "getType": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "hasPowerup": {
         "status": "used",
@@ -565,8 +509,8 @@
         "reason": "Called by the current bridge implementation."
       },
       "isCollapsed": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "isDocument": {
         "status": "used",
@@ -581,8 +525,8 @@
         "reason": "Called by the current bridge implementation."
       },
       "isPowerup": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "isPowerupEnum": {
         "status": "used",
@@ -609,12 +553,12 @@
         "reason": "Called by the current bridge implementation."
       },
       "isSlot": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "isTable": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "isTodo": {
         "status": "used",
@@ -629,8 +573,8 @@
         "reason": "Called by the current bridge implementation."
       },
       "moveRems": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "openRemAsPage": {
         "status": "used",
@@ -645,16 +589,16 @@
         "reason": "Called by the current bridge implementation."
       },
       "portalsAndDocumentsIn": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "positionAmongstSiblings": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "positionAmongstVisibleSiblings": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "remove": {
         "status": "used",
@@ -665,8 +609,8 @@
         "reason": "Called by the current bridge implementation."
       },
       "removePowerup": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "removeSource": {
         "status": "used",
@@ -685,8 +629,8 @@
         "reason": "Called by the current bridge implementation."
       },
       "scrollToReaderHighlight": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "setBackText": {
         "status": "used",
@@ -701,8 +645,8 @@
         "reason": "Called by the current bridge implementation."
       },
       "setHiddenExplicitlyIncludedState": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "setHighlightColor": {
         "status": "used",
@@ -717,8 +661,8 @@
         "reason": "Called by the current bridge implementation."
       },
       "setIsCollapsed": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "setIsDocument": {
         "status": "used",
@@ -741,8 +685,8 @@
         "reason": "Called by the current bridge implementation."
       },
       "setIsSlot": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "setIsTodo": {
         "status": "used",
@@ -757,8 +701,8 @@
         "reason": "Called by the current bridge implementation."
       },
       "setTableFilter": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "setTagPropertyValue": {
         "status": "used",
@@ -777,102 +721,98 @@
         "reason": "Called by the current bridge implementation."
       },
       "siblingRem": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "taggedRem": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
       },
       "timesSelectedInSearch": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "visibleSiblingRem": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       }
     },
     "rich_text": {
       "applyTextFormatToRange": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "audio": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "charAt": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "code": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "deepGetRemAndAliasIdsFromRichText": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "deepGetRemIdsFromRichText": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "empty": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "equals": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "findAllExternalURLs": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "getRemAndAliasIdsFromRichText": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "getRemIdsFromRichText": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "image": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "indexOf": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "indexOfElementAt": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "latex": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "length": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "newline": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "normalize": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
       },
       "parseAndInsertHtml": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "parseFromMarkdown": {
         "status": "used",
@@ -883,8 +823,8 @@
         "reason": "Called by the current bridge implementation."
       },
       "removeTextFormatFromRange": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "replaceAllRichText": {
         "status": "used",
@@ -895,64 +835,56 @@
         "reason": "Called by the current bridge implementation."
       },
       "splitRichText": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "substring": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "text": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "toHTML": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "toMarkdown": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "toString": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
       },
       "toggleTextFormatOnRange": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "trim": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
       },
       "trimEnd": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "trimStart": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "value": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
       },
       "video": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       }
     },
     "scheduler": {
       "registerCustomScheduler": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
-      },
-      "undefined": {
         "status": "not_exposed",
         "reason": "Not yet exposed by the curated agent API."
       }
@@ -961,10 +893,6 @@
       "search": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
       }
     },
     "settings": {
@@ -987,10 +915,6 @@
       "registerStringSetting": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
       }
     },
     "storage": {
@@ -1017,16 +941,6 @@
       "setSynced": {
         "status": "not_exposed",
         "reason": "Not yet exposed by the curated agent API."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
-      }
-    },
-    "utils": {
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
       }
     },
     "widget": {
@@ -1049,10 +963,6 @@
       "openPopup": {
         "status": "used",
         "reason": "Called by the current bridge implementation."
-      },
-      "undefined": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
       }
     },
     "window": {
@@ -1113,8 +1023,8 @@
         "reason": "Not yet exposed by the curated agent API."
       },
       "openWidgetInRightSidebar": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
+        "status": "used",
+        "reason": "Called by the current bridge implementation."
       },
       "releaseKeys": {
         "status": "not_exposed",
@@ -1141,10 +1051,6 @@
         "reason": "Called by the current bridge implementation."
       },
       "stealKeys": {
-        "status": "not_exposed",
-        "reason": "Not yet exposed by the curated agent API."
-      },
-      "undefined": {
         "status": "not_exposed",
         "reason": "Not yet exposed by the curated agent API."
       }

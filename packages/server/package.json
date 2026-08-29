@@ -1,6 +1,6 @@
 {
   "name": "@remnote-agent/server",
-  "version": "0.19.0",
+  "version": "0.20.0",
   "description": "Secure local runtime and MCP server for RemNote Agent",
   "type": "module",
   "main": "dist/index.js",
