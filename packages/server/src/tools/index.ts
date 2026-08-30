@@ -1,4 +1,5 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { getToolAnnotations } from './annotations.js';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { WebSocketServer } from '../websocket-server.js';
 import { CreateNoteSchema } from '../schemas/remnote-schemas.js';
@@ -1705,7 +1706,7 @@ export const ALL_TOOLS = [
   READER_TOOL,
   AUDIT_LOG_TOOL,
   READ_TABLE_TOOL,
-] as const;
+].map((tool) => ({ ...tool, annotations: getToolAnnotations(tool.name) }));
 
 export function registerAllTools(
   server: Server,
@@ -1757,7 +1758,10 @@ export function registerAllTools(
     const toolName = request.params.name;
     const startTime = Date.now();
 
-    toolLogger.debug({ tool: toolName, args: request.params.arguments }, 'Executing tool');
+    toolLogger.debug(
+      { tool: toolName, argumentCount: Object.keys(request.params.arguments ?? {}).length },
+      'Executing tool'
+    );
 
     try {
       let result;
@@ -2125,7 +2129,7 @@ export function registerAllTools(
       toolLogger.error(
         {
           tool: toolName,
-          error: error instanceof Error ? error.message : String(error),
+          error: 'TOOL_FAILED',
         },
         'Tool failed'
       );

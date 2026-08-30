@@ -839,7 +839,7 @@ describe('WebSocketServer - Logging', () => {
       );
     });
 
-    await wsServer.sendRequest('search', { foo: 'bar' });
+    await wsServer.sendRequest('search', { query: 'PRIVATE_REQUEST_SENTINEL' });
 
     expect(mockLogger.debug).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'search' }),
@@ -925,14 +925,17 @@ describe('WebSocketServer - Request/Response Logging', () => {
       );
     });
 
-    await wsServer.sendRequest('search', { foo: 'bar' });
+    await wsServer.sendRequest('search', { query: 'PRIVATE_REQUEST_SENTINEL' });
 
     expect(mockRequestLogger.info).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'request',
         action: 'search',
-        payload: { foo: 'bar' },
+        argumentCount: 1,
       })
+    );
+    expect(JSON.stringify(mockRequestLogger.info.mock.calls)).not.toContain(
+      'PRIVATE_REQUEST_SENTINEL'
     );
   });
 
@@ -966,20 +969,21 @@ describe('WebSocketServer - Request/Response Logging', () => {
         JSON.stringify({
           id: request.id,
           operationId: request.operationId,
-          error: { code: 'TEST_ERROR', message: 'Test error', retryable: false },
+          error: { code: 'TEST_ERROR', message: 'PRIVATE_ERROR_SENTINEL', retryable: false },
         })
       );
     });
 
-    await wsServer.sendRequest('search', {}).catch(() => {
-      // Ignore error
-    });
+    await expect(wsServer.sendRequest('search', {})).rejects.toThrow('PRIVATE_ERROR_SENTINEL');
 
     expect(mockResponseLogger.info).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'response',
-        error: 'TEST_ERROR: Test error',
+        error: 'BRIDGE_REQUEST_FAILED',
       })
+    );
+    expect(JSON.stringify(mockResponseLogger.info.mock.calls)).not.toContain(
+      'PRIVATE_ERROR_SENTINEL'
     );
   });
 });

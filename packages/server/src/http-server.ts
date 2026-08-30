@@ -109,7 +109,7 @@ export class HttpMcpServer {
       } catch (error) {
         this.logger.error(
           {
-            error,
+            error: 'MCP_REQUEST_FAILED',
             sessionId: req.headers['mcp-session-id'] as string | undefined,
           },
           'Error handling POST request'

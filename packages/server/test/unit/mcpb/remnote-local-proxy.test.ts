@@ -55,6 +55,11 @@ describe('RemNoteLocalProxy', () => {
 
   it('keeps MCPB fallback tools aligned with the split write contract', () => {
     const fallbackNames = FALLBACK_TOOLS.map((tool) => tool.name);
+    for (const tool of FALLBACK_TOOLS) {
+      expect(tool.annotations).toEqual(
+        ALL_TOOLS.find((candidate) => candidate.name === tool.name)?.annotations
+      );
+    }
     const canonicalNames = ALL_TOOLS.map((tool) => tool.name);
     expect(fallbackNames).toEqual(canonicalNames);
     expect(fallbackNames).toContain('remnote_insert_children');

@@ -7,6 +7,10 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.20.3] - 2026-08-30
+
+- Synchronize the bridge package with the runtime privacy and tool-metadata release.
+
 ## [0.20.2] - 2026-08-30
 
 ### Fixed

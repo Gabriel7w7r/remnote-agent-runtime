@@ -1,5 +1,5 @@
 export const REMNOTE_AGENT_PROTOCOL_VERSION = 2 as const;
-export const REMNOTE_AGENT_RUNTIME_VERSION = "0.20.2";
+export const REMNOTE_AGENT_RUNTIME_VERSION = "0.20.3";
 
 export const CAPABILITY_SCOPES = [
   "read",

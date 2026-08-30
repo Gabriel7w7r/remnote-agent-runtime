@@ -16,13 +16,15 @@ const canonicalTools = ALL_TOOLS.map((tool) => ({
   name: tool.name,
   description: tool.description,
   inputSchema: tool.inputSchema,
+  annotations: tool.annotations,
 }));
 
 const manifestTools = canonicalTools.map(({ name, description }) => ({ name, description }));
-const fallbackTools = canonicalTools.map(({ name, description, inputSchema }) => ({
+const fallbackTools = canonicalTools.map(({ name, description, inputSchema, annotations }) => ({
   name,
   description,
   inputSchema,
+  annotations,
 }));
 
 const currentManifest = JSON.parse(await readFile(manifestPath, 'utf8'));

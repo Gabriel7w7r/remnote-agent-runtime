@@ -7,6 +7,14 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.20.3] - 2026-08-30
+
+### Fixed
+
+- Advertise explicit safety annotations on all 30 tools, including offline proxy metadata.
+- Stop persisting raw arguments and SDK error text in operation diagnostics and audit entries.
+- Add privacy and annotation regression tests. Existing historical logs are not erased.
+
 ## [0.20.2] - 2026-08-30
 
 ### Fixed

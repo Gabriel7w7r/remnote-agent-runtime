@@ -36,8 +36,14 @@ export class AuditLog {
   }
 
   append(entry: AuditEntry): void {
+    // SDK errors can echo note text. Keep only an outcome code on disk;
+    // the original error is still returned to the requesting client.
+    const safeEntry = {
+      ...entry,
+      error: entry.outcome === 'success' ? undefined : entry.outcome.toUpperCase(),
+    };
     mkdirSync(dirname(this.path), { recursive: true, mode: 0o700 });
-    appendFileSync(this.path, `${JSON.stringify(entry)}\n`, { encoding: 'utf8', mode: 0o600 });
+    appendFileSync(this.path, `${JSON.stringify(safeEntry)}\n`, { encoding: 'utf8', mode: 0o600 });
   }
 
   readRecent(limit = 100): AuditEntry[] {

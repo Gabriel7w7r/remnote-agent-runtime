@@ -66,7 +66,7 @@ export class WebSocketServer {
     private readonly port: number,
     private readonly host: string,
     logger: Logger,
-    private readonly serverVersion = '0.20.2',
+    private readonly serverVersion = '0.20.3',
     requestLogger?: Logger,
     responseLogger?: Logger,
     private readonly authStore: AuthStore = new AuthStore(),
@@ -170,7 +170,7 @@ export class WebSocketServer {
       operationId,
       action,
       scope: policy.scope,
-      payload,
+      argumentCount: Object.keys(payload).length,
     });
 
     return new Promise((resolve, reject) => {
@@ -200,7 +200,7 @@ export class WebSocketServer {
             id,
             operationId,
             duration_ms: Date.now() - startTime,
-            error: error.message,
+            error: 'BRIDGE_REQUEST_FAILED',
           });
           this.appendAudit(id, operationId, audit, 'error', error.message);
           reject(error);
@@ -354,8 +354,8 @@ export class WebSocketServer {
       if (!this.clientAccepted) {
         this.rejectBridge('Message received before authentication', INCOMPATIBLE_BRIDGE_REASON);
       }
-    } catch (error) {
-      this.logger.error({ error }, 'Error parsing bridge message');
+    } catch {
+      this.logger.error({ error: 'INVALID_BRIDGE_MESSAGE' }, 'Error parsing bridge message');
       if (!this.clientAccepted) {
         this.rejectBridge('Invalid JSON before authentication', INCOMPATIBLE_BRIDGE_REASON);
       }

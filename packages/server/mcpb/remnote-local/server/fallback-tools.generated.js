@@ -45,6 +45,11 @@ export const FALLBACK_TOOLS = [
       required: [],
       additionalProperties: false,
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: 'remnote_search',
@@ -101,6 +106,11 @@ export const FALLBACK_TOOLS = [
         },
       },
       required: ['query'],
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
     },
   },
   {
@@ -164,6 +174,11 @@ export const FALLBACK_TOOLS = [
       },
       required: ['tagRemId'],
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
   },
   {
     name: 'remnote_read_note',
@@ -211,6 +226,11 @@ export const FALLBACK_TOOLS = [
       },
       required: ['remId'],
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
   },
   {
     name: 'remnote_get_media',
@@ -239,6 +259,11 @@ export const FALLBACK_TOOLS = [
       },
       required: ['remId', 'field', 'mediaId'],
       additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
     },
   },
   {
@@ -271,6 +296,11 @@ export const FALLBACK_TOOLS = [
         },
       },
       required: ['parentRemId'],
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
     },
   },
   {
@@ -306,6 +336,11 @@ export const FALLBACK_TOOLS = [
       required: ['remId'],
       additionalProperties: false,
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: 'remnote_set_document_status',
@@ -336,6 +371,11 @@ export const FALLBACK_TOOLS = [
       },
       required: ['remId', 'isDocument'],
       additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      openWorldHint: true,
     },
   },
   {
@@ -377,6 +417,11 @@ export const FALLBACK_TOOLS = [
       },
       required: ['remId', 'newParentRemId'],
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: 'remnote_insert_children',
@@ -407,6 +452,11 @@ export const FALLBACK_TOOLS = [
       required: ['parentRemId', 'content', 'position'],
       additionalProperties: false,
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: 'remnote_replace_children',
@@ -427,6 +477,11 @@ export const FALLBACK_TOOLS = [
       },
       required: ['parentRemId', 'content'],
       additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      openWorldHint: true,
     },
   },
   {
@@ -459,6 +514,11 @@ export const FALLBACK_TOOLS = [
       },
       required: ['remId'],
       additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      openWorldHint: true,
     },
   },
   {
@@ -532,6 +592,11 @@ export const FALLBACK_TOOLS = [
       required: ['remId', 'tagRemId', 'propertyRemId', 'value'],
       additionalProperties: false,
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: 'remnote_append_journal',
@@ -560,6 +625,11 @@ export const FALLBACK_TOOLS = [
       required: ['content'],
       additionalProperties: false,
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: 'remnote_get_playbook',
@@ -568,6 +638,11 @@ export const FALLBACK_TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {},
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
     },
   },
   {
@@ -578,6 +653,11 @@ export const FALLBACK_TOOLS = [
       type: 'object',
       properties: {},
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
   },
   {
     name: 'remnote_pairing_status',
@@ -586,6 +666,11 @@ export const FALLBACK_TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {},
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
     },
   },
   {
@@ -596,6 +681,11 @@ export const FALLBACK_TOOLS = [
       type: 'object',
       properties: {},
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      openWorldHint: false,
+    },
   },
   {
     name: 'remnote_capabilities',
@@ -604,6 +694,11 @@ export const FALLBACK_TOOLS = [
     inputSchema: {
       type: 'object',
       properties: {},
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
     },
   },
   {
@@ -775,6 +870,11 @@ export const FALLBACK_TOOLS = [
       required: ['operation'],
       additionalProperties: true,
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: 'remnote_window',
@@ -940,6 +1040,11 @@ export const FALLBACK_TOOLS = [
       required: ['operation'],
       additionalProperties: true,
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: 'remnote_queue',
@@ -1088,6 +1193,11 @@ export const FALLBACK_TOOLS = [
       },
       required: ['operation'],
       additionalProperties: true,
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      openWorldHint: false,
     },
   },
   {
@@ -1245,6 +1355,11 @@ export const FALLBACK_TOOLS = [
       },
       required: ['operation'],
       additionalProperties: true,
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      openWorldHint: true,
     },
   },
   {
@@ -1480,6 +1595,11 @@ export const FALLBACK_TOOLS = [
       required: ['operation'],
       additionalProperties: true,
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      openWorldHint: true,
+    },
   },
   {
     name: 'remnote_rich_text',
@@ -1663,6 +1783,11 @@ export const FALLBACK_TOOLS = [
       required: ['operation'],
       additionalProperties: true,
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
   },
   {
     name: 'remnote_knowledge_base',
@@ -1812,6 +1937,11 @@ export const FALLBACK_TOOLS = [
       required: ['operation'],
       additionalProperties: true,
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
+    },
   },
   {
     name: 'remnote_daily_document',
@@ -1959,6 +2089,11 @@ export const FALLBACK_TOOLS = [
       },
       required: ['operation'],
       additionalProperties: true,
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: true,
     },
   },
   {
@@ -2108,6 +2243,11 @@ export const FALLBACK_TOOLS = [
       required: ['operation'],
       additionalProperties: true,
     },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: true,
+    },
   },
   {
     name: 'remnote_audit_log',
@@ -2124,6 +2264,11 @@ export const FALLBACK_TOOLS = [
         },
       },
       additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
     },
   },
   {
@@ -2158,6 +2303,11 @@ export const FALLBACK_TOOLS = [
         },
       },
       description: 'Provide exactly one of tableRemId or tableTitle.',
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
     },
   },
 ];

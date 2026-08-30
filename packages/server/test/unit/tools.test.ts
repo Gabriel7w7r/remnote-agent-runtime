@@ -33,6 +33,7 @@ import {
   ALL_TOOLS,
 } from '../../src/tools/index.js';
 import { WebSocketServer } from '../../src/websocket-server.js';
+import { getToolAnnotations } from '../../src/tools/annotations.js';
 import { AjvJsonSchemaValidator } from '@modelcontextprotocol/sdk/validation/ajv';
 import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import {
@@ -92,6 +93,33 @@ function expectStructuredToolResult(result: ToolSuccessResult, expected: Record<
 }
 
 describe('Tool Definitions', () => {
+  it('requires complete safety annotations for every advertised tool', () => {
+    expect(ALL_TOOLS).toHaveLength(30);
+    for (const tool of ALL_TOOLS) {
+      expect(typeof tool.annotations.readOnlyHint).toBe('boolean');
+      expect(typeof tool.annotations.destructiveHint).toBe('boolean');
+      expect(typeof tool.annotations.openWorldHint).toBe('boolean');
+    }
+    expect(() => getToolAnnotations('unclassified')).toThrow('Missing safety annotations');
+  });
+
+  it('labels grouped mutations, implicit creation, and access revocation conservatively', () => {
+    for (const name of ['remnote_editor', 'remnote_rem', 'remnote_card', 'remnote_window']) {
+      expect(getToolAnnotations(name)).toEqual({
+        readOnlyHint: false,
+        destructiveHint: true,
+        openWorldHint: true,
+      });
+    }
+    expect(getToolAnnotations('remnote_daily_document').readOnlyHint).toBe(false);
+    expect(getToolAnnotations('remnote_reset_pairing').destructiveHint).toBe(true);
+    expect(getToolAnnotations('remnote_search')).toEqual({
+      readOnlyHint: false,
+      destructiveHint: false,
+      openWorldHint: false,
+    });
+  });
+
   it('should advertise OpenAI-compatible top-level input schemas', () => {
     // OpenAI/Codex rejects MCP tool input schemas with top-level JSON Schema
     // composition keywords. Keep runtime-only constraints in Zod schemas instead.
@@ -1700,16 +1728,17 @@ describe('Tool Logging', () => {
 
   it('should log tool execution', async () => {
     await mockServer.callHandler(CallToolRequestSchema, {
-      params: { name: 'remnote_search', arguments: validSearchInput },
+      params: { name: 'remnote_search', arguments: { query: 'PRIVATE_NOTE_SENTINEL' } },
     });
 
     expect(mockLogger.debug).toHaveBeenCalledWith(
       expect.objectContaining({
         tool: 'remnote_search',
-        args: validSearchInput,
+        argumentCount: 1,
       }),
       'Executing tool'
     );
+    expect(JSON.stringify(mockLogger.debug.mock.calls)).not.toContain('PRIVATE_NOTE_SENTINEL');
   });
 
   it('should log tool completion with duration', async () => {
@@ -1727,7 +1756,7 @@ describe('Tool Logging', () => {
   });
 
   it('should log tool failures', async () => {
-    mockWsServer.sendRequest.mockRejectedValue(new Error('Test error'));
+    mockWsServer.sendRequest.mockRejectedValue(new Error('PRIVATE_ERROR_SENTINEL'));
 
     await mockServer.callHandler(CallToolRequestSchema, {
       params: { name: 'remnote_search', arguments: validSearchInput },
@@ -1736,10 +1765,11 @@ describe('Tool Logging', () => {
     expect(mockLogger.error).toHaveBeenCalledWith(
       expect.objectContaining({
         tool: 'remnote_search',
-        error: 'Test error',
+        error: 'TOOL_FAILED',
       }),
       'Tool failed'
     );
+    expect(JSON.stringify(mockLogger.error.mock.calls)).not.toContain('PRIVATE_ERROR_SENTINEL');
   });
 
   it('should log list_tools requests', async () => {
