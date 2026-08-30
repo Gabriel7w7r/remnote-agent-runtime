@@ -8,7 +8,7 @@ Security fixes are provided for the latest released version of RemNote Agent Run
 
 RemNote Agent Runtime is local-only. It rejects non-loopback HTTP and WebSocket host configuration, requires bearer authentication for MCP HTTP requests, and requires one-time pairing plus HMAC proof for the RemNote bridge. The bridge independently enforces declared capability scopes before invoking RemNote SDK methods.
 
-Do not expose ports `3001`, `3002`, or `8080` through a tunnel, reverse proxy, LAN binding, port forward, or public relay. A future remote mode would require a separately reviewed authenticated gateway and is not part of version `0.20.0`.
+Do not expose ports `3001`, `3002`, or `8080` through a tunnel, reverse proxy, LAN binding, port forward, or public relay. A future remote mode would require a separately reviewed authenticated gateway and is not part of version `0.20.1`.
 
 ## Secrets and logs
 

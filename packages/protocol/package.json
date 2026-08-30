@@ -1,6 +1,6 @@
 {
   "name": "@remnote-agent/protocol",
-  "version": "0.20.0",
+  "version": "0.20.2",
   "description": "Shared protocol types for RemNote Agent Runtime",
   "type": "module",
   "main": "dist/index.js",

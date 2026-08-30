@@ -1150,7 +1150,8 @@ function requiredRichText(payload: Record<string, unknown>, key: string): RichTe
   const value = payload[key];
   if (typeof value !== 'string' && !Array.isArray(value))
     throw new Error(`${key} must be a string or rich-text array`);
-  return value as RichTextInterface;
+  // The public contract accepts plain text, while the SDK accepts only arrays.
+  return (typeof value === 'string' ? [value] : value) as RichTextInterface;
 }
 function optionalRichText(
   payload: Record<string, unknown>,

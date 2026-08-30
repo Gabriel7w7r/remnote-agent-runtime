@@ -1,7 +1,7 @@
 # Remote Access Setup
 
 > [!CAUTION]
-> This is a historical upstream guide and is not supported by RemNote Agent Runtime `0.20.0`. The current runtime
+> This is a historical upstream guide and is not supported by RemNote Agent Runtime `0.20.2`. The current runtime
 > rejects non-loopback bindings and requires locally stored credentials. Do not tunnel or expose ports `3001`, `3002`,
 > or `8080`. Safe remote operation would require a separately designed and reviewed authenticated gateway.
 

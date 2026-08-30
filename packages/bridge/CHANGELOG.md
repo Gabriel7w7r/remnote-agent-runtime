@@ -7,6 +7,18 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.20.2] - 2026-08-30
+
+### Fixed
+
+- Request RemNote's separate `KnowledgeBaseInfo` read scope so knowledge-base metadata operations are not rejected by the SDK permission gate.
+
+## [0.20.1] - 2026-08-29
+
+### Fixed
+
+- Serve the packaged bridge on both IPv4 and IPv6 loopback so RemNote's standard `http://localhost:8080/` development registration loads reliably without exposing a LAN interface.
+
 ## [0.20.0] - 2026-08-28
 
 ### Added

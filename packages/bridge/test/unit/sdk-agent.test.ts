@@ -172,8 +172,8 @@ describe('SdkAgent', () => {
 
     expect(parseAndInsertHtml).toHaveBeenCalledWith('<strong>Important</strong>', rem);
     expect(rem.addPowerup).toHaveBeenCalledWith('agent_powerup');
-    expect(rem.setPowerupProperty).toHaveBeenCalledWith('agent_powerup', 'status', 'Ready');
-    expect(rem.setTagPropertyValue).toHaveBeenCalledWith('property-1', 'High');
+    expect(rem.setPowerupProperty).toHaveBeenCalledWith('agent_powerup', 'status', ['Ready']);
+    expect(rem.setTagPropertyValue).toHaveBeenCalledWith('property-1', ['High']);
     expect(rem.setTableFilter).toHaveBeenCalledWith({ type: 'group', children: [] });
   });
 
@@ -212,7 +212,7 @@ describe('SdkAgent', () => {
       agent.execute('rich_text_read', { operation: 'to_markdown', richText: 'Important' })
     ).resolves.toEqual({ markdown: '**Important**' });
     expect(image).toHaveBeenCalledWith('https://example.com/diagram.png', 640, 480);
-    expect(toMarkdown).toHaveBeenCalledWith('Important');
+    expect(toMarkdown).toHaveBeenCalledWith(['Important']);
   });
 });
 

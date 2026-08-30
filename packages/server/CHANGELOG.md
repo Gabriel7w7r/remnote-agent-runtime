@@ -7,6 +7,18 @@ Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.20.2] - 2026-08-30
+
+### Fixed
+
+- Ship the bridge's `KnowledgeBaseInfo` permission request and synchronize the runtime release metadata at version `0.20.2`.
+
+## [0.20.1] - 2026-08-29
+
+### Fixed
+
+- Bundle the dual-loopback bridge static server and synchronize the protocol, server, and release metadata at version `0.20.1`.
+
 ## [0.20.0] - 2026-08-28
 
 ### Added

@@ -5,6 +5,7 @@ const http = require('node:http');
 const path = require('node:path');
 
 const DEFAULT_HOST = '127.0.0.1';
+const LOOPBACK_HOSTS = ['127.0.0.1', '::1'];
 const DEFAULT_PORT = 8080;
 const DEFAULT_ROOT = path.resolve(__dirname, '..', 'dist');
 
@@ -122,6 +123,15 @@ function startStaticServer(options = {}) {
   return server;
 }
 
+function startLoopbackServers(options = {}) {
+  return LOOPBACK_HOSTS.map((host) =>
+    startStaticServer({
+      ...options,
+      host,
+    })
+  );
+}
+
 function printHelp(commandName, logger = console) {
   logger.log(`Usage: ${commandName} [--root <dist-dir>] [--port <port>]`);
 }
@@ -176,24 +186,29 @@ function runCli(args = process.argv.slice(2), options = {}) {
     return null;
   }
 
-  return startStaticServer({
+  const serverOptions = {
     root: parsed.root,
     port: parsed.port,
-    host: options.host,
     label: options.label,
     logger,
-  });
+  };
+
+  return options.host
+    ? startStaticServer({ ...serverOptions, host: options.host })
+    : startLoopbackServers(serverOptions);
 }
 
 module.exports = {
   DEFAULT_HOST,
   DEFAULT_PORT,
   DEFAULT_ROOT,
+  LOOPBACK_HOSTS,
   createStaticServer,
   isInsideRoot,
   parseCliArgs,
   resolveRequestPath,
   runCli,
+  startLoopbackServers,
   startStaticServer,
 };
 

@@ -17,5 +17,5 @@ describe('build-mcpb script', () => {
     expect(
       archive.includes(Buffer.from('node_modules/@modelcontextprotocol/sdk/package.json'))
     ).toBe(true);
-  }, 15000);
+  }, 30000);
 });

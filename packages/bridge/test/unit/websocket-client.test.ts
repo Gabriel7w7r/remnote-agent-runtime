@@ -3,6 +3,7 @@
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
+  BRIDGE_ACTION_TIMEOUT_MS,
   WebSocketClient,
   ConnectionStatus,
   RetryPhase,
@@ -243,6 +244,34 @@ describe('WebSocketClient', () => {
         code: 'ACTION_FAILED',
         message: 'Handler error',
         retryable: false,
+      });
+    });
+
+    it('should return a bounded retryable error when an action hangs', async () => {
+      vi.useFakeTimers();
+      const handler = vi.fn(() => new Promise<unknown>(() => undefined));
+
+      client.setMessageHandler(handler);
+      client.connect();
+      await vi.runOnlyPendingTimersAsync();
+
+      const ws = (client as unknown as { ws: MockWebSocket }).ws;
+      ws.simulateMessage({
+        id: 'req_timeout',
+        operationId: 'op_timeout',
+        action: 'update_note',
+        scope: 'write',
+        payload: {},
+      });
+      await vi.advanceTimersByTimeAsync(BRIDGE_ACTION_TIMEOUT_MS);
+
+      const response = ws.sentMessages
+        .map((message) => JSON.parse(message))
+        .find((message) => message.id === 'req_timeout');
+      expect(response.error).toEqual({
+        code: 'ACTION_TIMEOUT',
+        message: `Bridge action timed out after ${BRIDGE_ACTION_TIMEOUT_MS}ms`,
+        retryable: true,
       });
     });
 

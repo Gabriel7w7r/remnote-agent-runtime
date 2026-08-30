@@ -12,6 +12,11 @@ type StaticServerModule = {
     args: string[],
     options?: { defaultPort?: number; defaultRoot?: string }
   ) => { help: boolean; port: string | number; root: string };
+  startLoopbackServers: (options: {
+    logger?: { error: (message: string) => void; log: (message: string) => void };
+    port?: number;
+    root: string;
+  }) => http.Server[];
   startStaticServer: (options: {
     logger?: { error: (message: string) => void; log: (message: string) => void };
     port?: number;
@@ -26,9 +31,8 @@ type ResponseSnapshot = {
 };
 
 const nodeRequire = createRequire(import.meta.url);
-const { createStaticServer, isInsideRoot, parseCliArgs, startStaticServer } = nodeRequire(
-  '../../scripts/serve-dist.js'
-) as StaticServerModule;
+const { createStaticServer, isInsideRoot, parseCliArgs, startLoopbackServers, startStaticServer } =
+  nodeRequire('../../scripts/serve-dist.js') as StaticServerModule;
 
 const tmpDirs: string[] = [];
 
@@ -194,5 +198,29 @@ describe('serve-dist static server', () => {
       /\[remnote-mcp-bridge\] static server listening on http:\/\/127\.0\.0\.1:\d+/
     );
     expect(messages[0]).not.toContain(':0');
+  });
+
+  it('starts the bridge on IPv4 and IPv6 loopback only', async () => {
+    const servers = startLoopbackServers({
+      logger: {
+        error: () => undefined,
+        log: () => undefined,
+      },
+      port: 0,
+      root: createFixtureRoot(),
+    });
+
+    await Promise.all(
+      servers.map((server) => new Promise<void>((resolve) => server.on('listening', resolve)))
+    );
+
+    const hosts = servers.map((server) => {
+      const address = server.address();
+      return address && typeof address === 'object' ? address.address : null;
+    });
+
+    await Promise.all(servers.map(close));
+
+    expect(hosts).toEqual(['127.0.0.1', '::1']);
   });
 });

@@ -67,6 +67,15 @@ export interface WebSocketClientConfig {
   onLog?: (message: string, level: 'info' | 'warn' | 'error') => void;
 }
 
+export const BRIDGE_ACTION_TIMEOUT_MS = 10_000;
+
+class BridgeActionTimeoutError extends Error {
+  constructor() {
+    super(`Bridge action timed out after ${BRIDGE_ACTION_TIMEOUT_MS}ms`);
+    this.name = 'BridgeActionTimeoutError';
+  }
+}
+
 export class WebSocketClient {
   private ws: WebSocket | null = null;
   private reconnectAttempts = 0;
@@ -379,9 +388,12 @@ export class WebSocketClient {
   }
 
   private async handleRequest(request: BridgeRequest): Promise<void> {
+    const requestSocket = this.ws;
     const cached = this.responseCache.get(request.operationId);
     if (cached) {
-      this.ws?.send(JSON.stringify(cached));
+      if (requestSocket?.readyState === WebSocket.OPEN) {
+        requestSocket.send(JSON.stringify(cached));
+      }
       this.log(`Replayed cached response: ${request.action}`);
       return;
     }
@@ -407,18 +419,33 @@ export class WebSocketClient {
       response = errorResponse(request, 'NO_HANDLER', 'Bridge request handler is unavailable');
     } else {
       try {
-        const result = await this.messageHandler(request);
+        const result = await Promise.race([
+          this.messageHandler(request),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new BridgeActionTimeoutError()), BRIDGE_ACTION_TIMEOUT_MS)
+          ),
+        ]);
         response = { id: request.id, operationId: request.operationId, result };
         this.log(`Completed: ${request.action}`);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        response = errorResponse(request, 'ACTION_FAILED', message, false);
+        const timedOut = error instanceof BridgeActionTimeoutError;
+        response = errorResponse(
+          request,
+          timedOut ? 'ACTION_TIMEOUT' : 'ACTION_FAILED',
+          message,
+          timedOut
+        );
         this.log(`Failed: ${request.action} - ${message}`, 'error');
       }
     }
 
     this.cacheResponse(request.operationId, response);
-    this.ws?.send(JSON.stringify(response));
+    if (requestSocket === this.ws && requestSocket?.readyState === WebSocket.OPEN) {
+      requestSocket.send(JSON.stringify(response));
+    } else {
+      this.log(`Skipped stale response for ${request.action}`, 'warn');
+    }
   }
 
   private cacheResponse(operationId: string, response: BridgeResponse): void {

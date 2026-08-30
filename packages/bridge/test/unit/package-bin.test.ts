@@ -1,4 +1,5 @@
 import packageJson from '../../package.json';
+import manifest from '../../public/manifest.json';
 import { describe, expect, it } from 'vitest';
 import { readFileSync, statSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
@@ -49,5 +50,12 @@ describe('package bin metadata', () => {
       'parseManifest(manifest)'
     );
     expect(packageJson.dependencies['@remnote/plugin-sdk']).toBeDefined();
+  });
+
+  it('requests the separate knowledge-base metadata read scope', () => {
+    expect(manifest.requiredScopes).toContainEqual({
+      type: 'KnowledgeBaseInfo',
+      level: 'Read',
+    });
   });
 });

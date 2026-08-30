@@ -7,7 +7,7 @@
   "version": {
     "major": 0,
     "minor": 20,
-    "patch": 0
+    "patch": 2
   },
   "repoUrl": "https://github.com/Gabriel7w7r/remnote-agent-runtime",
   "enableOnMobile": false,
@@ -16,6 +16,10 @@
     {
       "type": "All",
       "level": "ReadCreateModifyDelete"
+    },
+    {
+      "type": "KnowledgeBaseInfo",
+      "level": "Read"
     }
   ]
 }

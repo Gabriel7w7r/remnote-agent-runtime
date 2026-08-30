@@ -66,7 +66,7 @@ export class WebSocketServer {
     private readonly port: number,
     private readonly host: string,
     logger: Logger,
-    private readonly serverVersion = '0.20.0',
+    private readonly serverVersion = '0.20.2',
     requestLogger?: Logger,
     responseLogger?: Logger,
     private readonly authStore: AuthStore = new AuthStore(),
